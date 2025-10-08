@@ -1,28 +1,37 @@
 <script setup lang="ts">
-import Password from 'primevue/password';
 import Form from '@primevue/forms/form';
-import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
-import Message from 'primevue/message';
 import Toast from 'primevue/toast';
-import Divider from 'primevue/divider';
-import FloatLabel from 'primevue/floatlabel';
 
-import { ref } from 'vue';
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from 'primevue/usetoast';
+import PasswordMolecule from "@/components/molecules/PasswordMolecule.vue";
+import Checkbox from "primevue/checkbox";
+import InputTextMolecule from "@/components/molecules/InputTextMolecule.vue";
+import Divider from "primevue/divider";
+import AuthToggleMolecule from "@/components/molecules/AuthToggleMolecule.vue";
+import SubtitelAtom from "@/components/atoms/SubtitelAtom.vue";
+
 
 const toast = useToast();
 
-const initialValues = ref({
-  username: '',
-  password: ''
-});
+const initialValues = {
+  firstName: '',
+  surname: '',
+  email: '',
+  password: '',
+  street: '',
+  houseNumber: '',
+  zipCode: '',
+  city: ''
+};
 
 const resolver = zodResolver(
     z.object({
-      username: z.string().min(1, { message: 'Username is required.' }),
+      firstName: z.string().min(1, { message: 'Vorname wird benötigt.' }),
+      surname: z.string().min(1, { message: 'Nachname wird benötigt.' }),
+      email: z.string().email({ message: 'Ungültiges E-Mail-Format.' }).min(1, { message: 'E-Mail wird benötigt.' }),
       password: z
           .string()
           .min(4, { message: 'Muss mindestens 4 Zeichen lang sein.' })
@@ -35,7 +44,14 @@ const resolver = zodResolver(
           })
           .refine((value) => /\d/.test(value), {
             message: 'Muss mindestens eine Ziffer enthalten.'
-          })
+          }),
+      street: z.string().min(3, { message: 'Straße ist erforderlich.' }),
+      houseNumber: z.string().min(1, { message: 'Hausnummer ist erforderlich.' }),
+      zipCode: z.string().regex(/^\d{5}$/, { message: 'Postleitzahl muss 5 Ziffern haben.' }),
+      city: z.string().min(2, { message: 'Ort ist erforderlich.' }),
+      accept: z.boolean().refine(val => val === true, {
+        message: 'Sie müssen den AGBs zustimmen.',
+      })
     })
 );
 
@@ -43,69 +59,56 @@ const onFormSubmit = (e) => {
   if (e.valid) {
     // TODO: send to server
 
-    toast.add({ severity: 'success', summary: 'Erfolgreich Registriert', detail: `Willkommen ${e.values.username}`, life: 3000 });
+    toast.add({ severity: 'success', summary: 'Erfolgreich Registriert', detail: `Willkommen ${e.values.firstName}`, life: 3000 });
   }
 };
 </script>
 
 <template>
-  <div class="card flex justify-center">
+  <div class="card flex flex-col items-center justify-center">
+    <SubtitelAtom text="Registrieren"/>
     <Toast/>
 
-    <Form v-slot="$form" :initialValues :resolver validate-on="submit" @submit="onFormSubmit" class="flex flex-col gap-4 w-full sm:w-60">
-      <div class="flex flex-col gap-1">
-        <FloatLabel variant="on">
-          <InputText inputId="username_input" name="username" type="text" fluid />
-          <label for="username_input">Name</label>
-        </FloatLabel>
-        <Message v-if="$form.username?.invalid" severity="error" size="small" variant="simple">{{ $form.username.error.message }}</Message>
+    <Form v-slot="$form" :initialValues :resolver validate-on="submit" @submit="onFormSubmit" class="flex flex-col gap-4 w-full sm:w-96">
+
+      <div class="flex gap-4">
+        <InputTextMolecule :form="$form" name="firstName" label="Vorname" type="text" icon="pi pi-user" class="flex-1"/>
+
+        <InputTextMolecule :form="$form" name="surname" label="Nachname" type="text" icon="pi pi-user" class="flex-1"/>
       </div>
 
-      <div class="flex flex-col gap-1">
-        <!--        <Password name="password" placeholder="Password" :feedback="false" toggleMask fluid />-->
-        <!--        <Message v-if="$form.password?.invalid" severity="error" size="small" variant="simple">-->
-        <!--          <ul class="my-0 px-4 flex flex-col gap-1">-->
-        <!--            <li v-for="(error, index) of $form.password.errors" :key="index">{{ error.message }}</li>-->
-        <!--          </ul>-->
-        <!--        </Message>-->
+      <InputTextMolecule :form="$form" name="email" label="E-Mail" type="email" icon="pi pi-envelope"/>
 
-        <FloatLabel variant="on">
-          <Password
-              inputId="password_input"
-              name="password"
-              toggleMask
-              fluid
-              promptLabel="Bitte gib dein Passwort ein"
-              weakLabel="Das geht besser.."
-              mediumLabel="Joa, ganz okay"
-              strongLabel="Wow, Glückwunsch!"
-          >
-            <template #footer>
-              <Divider />
-              <ul class="pl-2 my-0 leading-normal text-sm">
-                <li>Mindestens 4 Zeichen</li>
-                <li>Mindestens ein Kleinbuchstabe</li>
-                <li>Mindestens ein Großbuchstabe</li>
-                <li>Mindestens eine Ziffer</li>
-              </ul>
-            </template>
-          </Password>
-          <label for="password_input">Passwort</label>
-        </FloatLabel>
-        <Message
-            v-if="$form.password?.invalid"
-            severity="error"
-            size="small"
-            variant="simple"
-        >
-          <ul class="my-0 px-4 flex flex-col gap-1">
-            <li v-for="(error, index) of $form.password.errors" :key="index">{{ error.message }}</li>
-          </ul>
-        </Message>
+      <PasswordMolecule :form="$form"/>
 
+
+      <Divider align="left" type="horizontal"/>
+
+      <InputTextMolecule :form="$form" name="street" label="Straße" type="text" icon="pi pi-map"/>
+
+      <div class="flex gap-4">
+        <InputTextMolecule :form="$form" name="houseNumber" label="Haus-Nr." type="text" icon="pi pi-home" class="flex-1"/>
+        <InputTextMolecule :form="$form" name="zipCode" label="PLZ" type="text" icon="pi pi-box" class="flex-1"/>
       </div>
+
+      <InputTextMolecule :form="$form" name="city" label="Ort" type="text" icon="pi pi-globe"/>
+
+
+
+
+      <div class="flex items-center gap-2">
+        <Checkbox id="accept" v-model="accept" name="accept" :binary="true" />
+        <label for="accept">Ich stimme den Allgemeinen Geschäftsbedingungen zu.</label>
+      </div>
+
       <Button type="submit" label="Registrieren" />
     </Form>
+
+    <AuthToggleMolecule
+        question="Du hast bereits ein Konto?"
+        link-text="Anmelden"
+        to="/login"
+    />
   </div>
 </template>
 
