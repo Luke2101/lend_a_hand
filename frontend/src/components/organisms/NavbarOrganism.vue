@@ -2,6 +2,7 @@
 import Menubar from 'primevue/menubar';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
+import logoUrl from './../../assets/logo.png';
 
 
 import { ref } from "vue";
@@ -26,7 +27,7 @@ const items = ref([
   <div class="card">
     <Menubar :model="items">
       <template #start>
-        <img style="height: 40px; margin-right: 20px;" class="h-10" src="/frontend/src/assets/logo.png" alt="Logo"/>
+        <img style="height: 40px; margin-right: 20px;" class="h-10" :src="logoUrl" alt="Logo"/>
       </template>
 
       <template #item="{ item, props, hasSubmenu }">
