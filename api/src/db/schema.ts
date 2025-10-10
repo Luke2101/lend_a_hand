@@ -1,10 +1,5 @@
-import {int, mysqlTable, serial, varchar} from "drizzle-orm/mysql-core";
+// @ts-ignore
+export * from "./auth-schema.ts"
+// @ts-ignore
+export * from "./tables.ts"
 
-export const usersTable = mysqlTable('users', {
-    id: serial().primaryKey(),
-    prename: varchar({length: 256}).notNull(),
-    surname: varchar({length: 256}).notNull(),
-    plz: int().notNull(),
-    email: varchar({length: 256}).notNull().unique(),
-    password: varchar({length: 256}).notNull(),
-})
