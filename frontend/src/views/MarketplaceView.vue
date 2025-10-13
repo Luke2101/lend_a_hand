@@ -4,12 +4,11 @@ import SubtitelAtom from "@/components/atoms/SubtitelAtom.vue";
 </script>
 
 <template>
-  <SubtitelAtom text="Alle"/>
+  <SubtitelAtom text="Meine Anfragen"/>
   <CarouselOrganism/>
-  <SubtitelAtom text="Helfen"/>
+  <SubtitelAtom text="Anfragen anderer"/>
   <CarouselOrganism/>
-  <SubtitelAtom text="Leihen"/>
-  <CarouselOrganism/>
+  <div class="h-[5rem]"></div>
 </template>
 
 <style scoped>

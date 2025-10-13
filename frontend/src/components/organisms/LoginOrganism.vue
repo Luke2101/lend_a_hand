@@ -8,6 +8,8 @@ import PasswordMolecule from "@/components/molecules/PasswordMolecule.vue";
 import InputTextMolecule from "@/components/molecules/InputTextMolecule.vue";
 import AuthToggleMolecule from "@/components/molecules/AuthToggleMolecule.vue";
 import SubtitelAtom from "@/components/atoms/SubtitelAtom.vue";
+import {zodResolver} from "@primevue/forms/resolvers/zod";
+import {z} from "zod";
 
 const toast = useToast();
 
@@ -15,6 +17,13 @@ const initialValues = {
   email: '',
   password: ''
 };
+
+const resolver = zodResolver(
+    z.object({
+      email: z.string().email({ message: 'Ungültiges E-Mail-Format.' }).min(1, { message: 'E-Mail wird benötigt.' }),
+      password: z.string().min(1, { message: 'Bitte gib ein Passwort ein.' })
+    })
+);
 
 const onFormSubmit = (e) => {
   // TODO: send to server
@@ -28,10 +37,10 @@ const onFormSubmit = (e) => {
     <SubtitelAtom text="Anmelden"/>
     <Toast/>
 
-    <Form v-slot="$form" :initialValues @submit="onFormSubmit" class="flex flex-col gap-4 w-full sm:w-96">
-      <InputTextMolecule :form="$form" name="email" label="E-Mail" type="email" icon="pi pi-envelope"/>
+    <Form v-slot="$form" :initialValues :resolver @submit="onFormSubmit" validate-on="submit" novalidate class="flex flex-col gap-4 w-full sm:w-96">
+      <InputTextMolecule :form="$form" name="email" label="E-Mail" type="email" icon="pi pi-envelope" autofocus/>
 
-      <PasswordMolecule :form="$form"/>
+      <PasswordMolecule :form="$form" :feedback="false"/>
 
       <Button type="submit" label="Anmelden" />
     </Form>
