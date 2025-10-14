@@ -76,7 +76,7 @@ const statisticCards = [
   <div class="card flex flex-col items-center overflow-hidden" style="width: 80%; max-width: 1200px; margin: 0 auto">
 
     <div class="flex flex-col items-center gap-2 mb-20 mt-10">
-      <h1 class="text-4xl font-extrabold text-center">lend A hand - Deine Nachbarschaftshilfe</h1>
+      <h1 class="text-4xl font-extrabold text-center">lendAhand - Deine Nachbarschaftshilfe</h1>
       <p class="text-xl text-muted-color text-center max-w-2xl">Bohrmaschine, helfende Hand oder Kuchenrezept – frag deine Nachbarn, bevor du kaufst oder verzweifelst.</p>
       <span class="text-xl font-medium mt-8">Mehr erfahren</span>
       <span class="animate-bounce h-8 w-8 bg-primary text-primary-contrast rounded-full inline-flex items-center justify-center">

@@ -11,8 +11,10 @@ import Checkbox from "primevue/checkbox";
 import InputTextMolecule from "@/components/molecules/InputTextMolecule.vue";
 import Divider from "primevue/divider";
 import AuthToggleMolecule from "@/components/molecules/AuthToggleMolecule.vue";
-import SubtitelAtom from "@/components/atoms/SubtitelAtom.vue";
+import TextAtom from "@/components/atoms/TextAtom.vue";
+import {useRouter} from 'vue-router';
 
+const router = useRouter();
 
 const toast = useToast();
 
@@ -55,18 +57,46 @@ const resolver = zodResolver(
     })
 );
 
-const onFormSubmit = (e) => {
+const onFormSubmit = async (e) => {
   if (e.valid) {
-    // TODO: send to server
+    try {
+      const response = await fetch('http://localhost:8080/users/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prename: e.values.firstName,
+          surname: e.values.surname,
+          email: e.values.email,
+          password: e.values.password,
+          street: e.values.street,
+          houseNumber: e.values.houseNumber,
+          plz:  Number.parseInt(e.values.zipCode),
+          city: e.values.city,
+        }),
+      });
 
-    toast.add({ severity: 'success', summary: 'Erfolgreich Registriert', detail: `Willkommen ${e.values.firstName}`, life: 3000 });
+      if (response.ok) {
+        toast.add({ severity: 'success', summary: 'Erfolgreich Registriert', detail: `Willkommen ${e.values.firstName}`, life: 3000 });
+        await router.push('/login');
+      } else {
+        const errorData = await response.text();
+        console.log(errorData);
+        const errorMessage0 = errorData || 'Registrierung fehlgeschlagen.';
+        toast.add({ severity: 'error', summary: 'Fehler', detail: errorMessage0, life: 5000 });
+      }
+    } catch (error) {
+      console.error("Registrierungsfehler:", error);
+      toast.add({ severity: 'error', summary: 'Verbindungsfehler', detail: 'Server nicht erreichbar oder unerwarteter Fehler.', life: 5000 });
+    }
   }
 };
 </script>
 
 <template>
   <div class="card flex flex-col items-center justify-center">
-    <SubtitelAtom text="Registrieren"/>
+    <TextAtom tag="h1" class="text-xl font-bold mt-4 mb-4">Registrieren</TextAtom>
     <Toast/>
 
     <Form v-slot="$form" :initialValues :resolver @submit="onFormSubmit" validate-on="submit" novalidate class="flex flex-col gap-4 w-full sm:w-96">

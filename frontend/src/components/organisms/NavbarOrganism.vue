@@ -2,11 +2,12 @@
 import Menubar from 'primevue/menubar';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
-
+import Popover from 'primevue/popover';
 
 import { ref } from "vue";
+import { useAuth } from '@/composables/useAuth.ts';
 
-const isLoggedIn = ref(false)
+const { isLoggedIn, setLoggedIn } = useAuth();
 
 const items = ref([
   {
@@ -20,6 +21,17 @@ const items = ref([
     route: '/marketplace'
   }
 ]);
+
+const op = ref();
+
+const toggle = (event) => {
+  op.value.toggle(event);
+}
+
+function logout() {
+  console.log('logout'); // TODO
+  setLoggedIn(false);
+}
 </script>
 
 <template>
@@ -62,7 +74,15 @@ const items = ref([
             </router-link>
           </div>
           <div v-else>
-            <Avatar icon="pi pi-user" shape="circle" />
+            <Avatar label="LD" shape="circle" class="avatar" @click="toggle" />
+            <Popover ref="op">
+              <div class="flex flex-col gap-4">
+                <router-link to="/user" custom v-slot="{ navigate }">
+                  <Button label="Bearbeieten" icon="pi pi-pen-to-square" severity="secondary" @click="navigate" />
+                </router-link>
+                <Button label="Abmelden" icon="pi pi-sign-out" severity="danger" @click="logout" />
+              </div>
+            </Popover>
           </div>
         </div>
       </template>
@@ -83,5 +103,8 @@ const items = ref([
   background-image: var(--app-logo-url);
   background-size: contain;
   background-repeat: no-repeat;
+}
+.avatar:hover{
+  cursor: pointer;
 }
 </style>

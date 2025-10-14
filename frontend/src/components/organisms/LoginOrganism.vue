@@ -7,11 +7,17 @@ import { useToast } from 'primevue/usetoast';
 import PasswordMolecule from "@/components/molecules/PasswordMolecule.vue";
 import InputTextMolecule from "@/components/molecules/InputTextMolecule.vue";
 import AuthToggleMolecule from "@/components/molecules/AuthToggleMolecule.vue";
-import SubtitelAtom from "@/components/atoms/SubtitelAtom.vue";
+import TextAtom from "@/components/atoms/TextAtom.vue";
 import {zodResolver} from "@primevue/forms/resolvers/zod";
 import {z} from "zod";
+import {useRouter} from 'vue-router';
+import {useAuth} from "@/composables/useAuth";
+
+const router = useRouter();
 
 const toast = useToast();
+
+const { setLoggedIn } = useAuth();
 
 const initialValues = {
   email: '',
@@ -25,16 +31,42 @@ const resolver = zodResolver(
     })
 );
 
-const onFormSubmit = (e) => {
-  // TODO: send to server
+const onFormSubmit = async (e) => {
+  if (e.valid) {
+    try {
+      const response = await fetch('http://localhost:8080/users/signin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: e.values.email,
+          password: e.values.password,
+        }),
+      });
 
-  toast.add({ severity: 'success', summary: 'Erfolgreich Angemeldet', detail: `Willkommen ${e.values.username}`, life: 3000 });
+      if (response.ok) {
+        // TODO
+        setLoggedIn(true);
+        toast.add({ severity: 'success', summary: 'Erfolgreich Angemeldet', detail: `Anmeldung erfolgreich.`, life: 3000 });
+        await router.push('/marketplace');
+      } else {
+        const errorData = await response.text();
+        let errorMessage = errorData || 'Überprüfe E-Mail und Passwort.';
+        if (errorData == "INVALID_EMAIL_OR_PASSWORD") errorMessage = "Überprüfe E-Mail und Passwort.";
+        toast.add({ severity: 'error', summary: 'Anmeldung fehlgeschlagen', detail: errorMessage, life: 5000 });
+      }
+    } catch (error) {
+      console.error("Anmeldefehler:", error);
+      toast.add({ severity: 'error', summary: 'Verbindungsfehler', detail: 'Server nicht erreichbar oder unerwarteter Fehler.', life: 5000 });
+    }
+  }
 };
 </script>
 
 <template>
   <div class="card flex flex-col items-center justify-center">
-    <SubtitelAtom text="Anmelden"/>
+    <TextAtom tag="h1" class="text-xl font-bold mt-4 mb-4">Anmelden</TextAtom>
     <Toast/>
 
     <Form v-slot="$form" :initialValues :resolver @submit="onFormSubmit" validate-on="submit" novalidate class="flex flex-col gap-4 w-full sm:w-96">
