@@ -9,6 +9,7 @@ import InputIcon from "primevue/inputicon";
 
 defineProps<{
   form: any;
+  feedback: boolean;
 }>();
 </script>
 
@@ -29,6 +30,7 @@ defineProps<{
             weakLabel="Das geht besser.."
             mediumLabel="Joa, ganz okay"
             strongLabel="Wow, Glückwunsch!"
+            :feedback="feedback"
         >
           <template #footer>
             <Divider />

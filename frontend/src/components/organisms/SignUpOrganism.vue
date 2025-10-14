@@ -69,17 +69,17 @@ const onFormSubmit = (e) => {
     <SubtitelAtom text="Registrieren"/>
     <Toast/>
 
-    <Form v-slot="$form" :initialValues :resolver validate-on="submit" @submit="onFormSubmit" class="flex flex-col gap-4 w-full sm:w-96">
+    <Form v-slot="$form" :initialValues :resolver @submit="onFormSubmit" validate-on="submit" novalidate class="flex flex-col gap-4 w-full sm:w-96">
 
       <div class="flex gap-4">
-        <InputTextMolecule :form="$form" name="firstName" label="Vorname" type="text" icon="pi pi-user" class="flex-1"/>
+        <InputTextMolecule :form="$form" name="firstName" label="Vorname" type="text" icon="pi pi-user" class="flex-1" autofocus/>
 
         <InputTextMolecule :form="$form" name="surname" label="Nachname" type="text" icon="pi pi-user" class="flex-1"/>
       </div>
 
       <InputTextMolecule :form="$form" name="email" label="E-Mail" type="email" icon="pi pi-envelope"/>
 
-      <PasswordMolecule :form="$form"/>
+      <PasswordMolecule :form="$form" :feedback="true"/>
 
 
       <Divider align="left" type="horizontal"/>
@@ -97,7 +97,7 @@ const onFormSubmit = (e) => {
 
 
       <div class="flex items-center gap-2">
-        <Checkbox id="accept" v-model="accept" name="accept" :binary="true" />
+        <Checkbox id="accept" name="accept" :binary="true" />
         <label for="accept">Ich stimme den Allgemeinen Geschäftsbedingungen zu.</label>
       </div>
 
