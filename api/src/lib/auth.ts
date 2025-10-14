@@ -18,7 +18,10 @@ export const auth = betterAuth({
             userTable,
         }
     }),
-    emailAndPassword: {enabled: true},
+    emailAndPassword: {
+        enabled: true,
+        requireEmailVerification: false,
+    },
     session: {
         expiresIn: 60 * 60 * 3,
     },
