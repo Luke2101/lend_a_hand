@@ -30,20 +30,60 @@ const router = express.Router();
  *                 id:
  *                   type: string
  *                   description: User ID
+ *                   example: abc123def456
+ *                 name:
+ *                   type: string
+ *                   description: Full name
+ *                   example: John Doe
+ *                 prename:
+ *                   type: string
+ *                   description: First name
+ *                   example: John
+ *                 surname:
+ *                   type: string
+ *                   description: Last name
+ *                   example: Doe
  *                 email:
  *                   type: string
  *                   description: User email
- *                 name:
+ *                   example: john.doe@example.com
+ *                 emailVerified:
+ *                   type: boolean
+ *                   description: Whether the email is verified
+ *                   example: true
+ *                 image:
  *                   type: string
- *                   description: User name
- *                 # Add other user properties here
+ *                   description: URL to user's profile image (nullable)
+ *                   example: null
+ *                 createdAt:
+ *                   type: string
+ *                   format: date-time
+ *                   description: Account creation timestamp
+ *                   example: 2025-01-01T12:00:00.000Z
+ *                 updatedAt:
+ *                   type: string
+ *                   format: date-time
+ *                   description: Last account update timestamp
+ *                   example: 2025-05-01T12:00:00.000Z
+ *                 street:
+ *                   type: string
+ *                   example: Example Street
+ *                 houseNumber:
+ *                   type: string
+ *                   example: 42A
+ *                 plz:
+ *                   type: integer
+ *                   example: 12345
+ *                 city:
+ *                   type: string
+ *                   example: Sample City
  *       401:
  *         description: Unauthorized - invalid or missing session
  *         content:
  *           text/plain:
  *             schema:
  *               type: string
- *               example: Ungültige Sitzung!
+ *               example: Invalid session!
  */
 router.get("/info", UserService.getAccountInfo);
 
