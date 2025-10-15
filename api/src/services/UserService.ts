@@ -4,7 +4,7 @@ import {auth} from "../lib/auth.js";
 import {fromNodeHeaders} from "better-auth/node";
 
 
-class AuthService {
+class UserSerivce {
     public static async getAccountInfo(req: Request, res: Response) {
         return res.status(200).json(req.session.user)
 
@@ -17,4 +17,4 @@ class AuthService {
 
     }
 }
-export default AuthService;
+export default UserSerivce;
