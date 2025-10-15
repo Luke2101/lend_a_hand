@@ -2,10 +2,11 @@ import express from "express";
 import AuthService from "../services/AuthService.js";
 import {validateBody} from "../middleware/validate.js";
 import {signInSchema, signUpSchema} from "../schemas/authSchemas.js";
+import {authenticateUser} from "../middleware/auth.js";
+import UserService from "../services/UserService.js";
 const router = express.Router();
 
-router.post("/signup", validateBody(signUpSchema), AuthService.signUp);
-router.post("/login", validateBody(signInSchema),AuthService.signIn);
+router.post("/info", UserService.getAccountInfo);
 
 
 export default router;

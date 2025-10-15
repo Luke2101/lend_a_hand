@@ -8,7 +8,7 @@
     "db:applyChanges": "npx drizzle-kit generate && npx drizzle-kit migrate",
     "db:push": "npx drizzle-kit push",
     "db:gen": "npx @better-auth/cli generate --output ./src/db/auth-schema.ts",
-    "setup": "tsc && npm run db:gen && npm run db:applyChanges"
+    "setup": "npm install && tsc && npm run db:gen && npm run db:applyChanges"
   },
   "keywords": [],
   "author": "",

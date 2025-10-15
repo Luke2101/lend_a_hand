@@ -12,4 +12,6 @@ export async function authenticateUser(req: express.Request, res: express.Respon
     if(!session) {
         res.status(StatusCodes.UNAUTHORIZED).send("Not Authorized")
     }
+
+    next();
 }
