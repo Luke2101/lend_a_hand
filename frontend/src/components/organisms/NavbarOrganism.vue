@@ -1,18 +1,28 @@
-<script setup>
+<script setup lang="ts">
 import Menubar from 'primevue/menubar';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
 import Popover from 'primevue/popover';
 import Toast from 'primevue/toast';
 
-import { ref } from "vue";
-import { useAuth } from '@/composables/useAuth.ts';
+import { ref, computed } from "vue";
+import { useAuth } from '@/composables/useAuth';
 import router from "@/router/index.js";
 import {useToast} from "primevue/usetoast";
+import {useUserStore} from "@/stores/user";
 
 const toast = useToast();
-
+const userStore = useUserStore();
 const { isLoggedIn, setLoggedIn } = useAuth();
+
+const avatarLabel = computed(() => {
+  if (userStore.userInfo && userStore.userInfo.prename && userStore.userInfo.surname) {
+    const firstInitial = userStore.userInfo.prename.charAt(0).toUpperCase();
+    const lastInitial = userStore.userInfo.surname.charAt(0).toUpperCase();
+    return firstInitial + lastInitial;
+  }
+  return null;
+});
 
 const items = ref([
   {
@@ -103,9 +113,17 @@ async function logout() {
             </router-link>
           </div>
           <div v-else>
-            <Avatar label="LD" shape="circle" class="avatar" @click="toggle" />
+            <template v-if="avatarLabel">
+              <Avatar :label="avatarLabel" shape="circle" class="avatar" @click="toggle" />
+            </template>
+            <template v-else>
+              <Avatar icon="pi pi-user" shape="circle" class="avatar" @click="toggle" />
+            </template>
             <Popover ref="op">
               <div class="flex flex-col gap-4">
+                <div v-if="userStore.userInfo" class="font-semibold text-lg pb-2 border-b border-surface-200 dark:border-surface-700">
+                  {{ userStore.userInfo.prename }} {{ userStore.userInfo.surname }}
+                </div>
                 <router-link to="/user" custom v-slot="{ navigate }">
                   <Button label="Bearbeieten" icon="pi pi-pen-to-square" severity="secondary" @click="navigate" />
                 </router-link>
