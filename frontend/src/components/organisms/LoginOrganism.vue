@@ -34,7 +34,7 @@ const resolver = zodResolver(
 const onFormSubmit = async (e) => {
   if (e.valid) {
     try {
-      const response = await fetch('http://localhost:8080/users/signin', {
+      const response = await fetch('http://localhost:8080/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -43,10 +43,10 @@ const onFormSubmit = async (e) => {
           email: e.values.email,
           password: e.values.password,
         }),
+        credentials: 'include',
       });
 
       if (response.ok) {
-        // TODO
         setLoggedIn(true);
         toast.add({ severity: 'success', summary: 'Erfolgreich Angemeldet', detail: `Anmeldung erfolgreich.`, life: 3000 });
         await router.push('/marketplace');

@@ -3,9 +3,14 @@ import Menubar from 'primevue/menubar';
 import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
 import Popover from 'primevue/popover';
+import Toast from 'primevue/toast';
 
 import { ref } from "vue";
 import { useAuth } from '@/composables/useAuth.ts';
+import router from "@/router/index.js";
+import {useToast} from "primevue/usetoast";
+
+const toast = useToast();
 
 const { isLoggedIn, setLoggedIn } = useAuth();
 
@@ -28,13 +33,37 @@ const toggle = (event) => {
   op.value.toggle(event);
 }
 
-function logout() {
-  console.log('logout'); // TODO
-  setLoggedIn(false);
+async function logout() {
+  try {
+    const response = await fetch('http://localhost:8080/user/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include'
+    });
+
+    if (response.ok) {
+      setLoggedIn(false);
+      await router.push('/login');
+    } else {
+      let errorMessage = 'Ihre Sitzung konnte auf dem Server nicht beendet werden. Bitte löschen Sie Ihren Browser-Cache und alle Cookies, um sicherzustellen, dass Sie abgemeldet sind.';
+      toast.add({severity: 'error', summary: 'Abmeldung war nicht erfolgreich', detail: errorMessage, life: 5000});
+    }
+  } catch (error) {
+    console.error("Abmeldefehler:", error);
+    toast.add({
+      severity: 'error',
+      summary: 'Verbindungsfehler',
+      detail: 'Server nicht erreichbar oder unerwarteter Fehler.',
+      life: 5000
+    });
+  }
 }
 </script>
 
 <template>
+  <Toast/>
   <div class="card mt-4">
     <Menubar :model="items">
       <template #start>

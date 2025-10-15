@@ -60,7 +60,7 @@ const resolver = zodResolver(
 const onFormSubmit = async (e) => {
   if (e.valid) {
     try {
-      const response = await fetch('http://localhost:8080/users/signup', {
+      const response = await fetch('http://localhost:8080/auth/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
