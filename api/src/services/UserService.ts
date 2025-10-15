@@ -12,7 +12,8 @@ class UserSerivce {
 
     public static async logout(req: Request, res:Response) {
         const headers = fromNodeHeaders(req.headers);
-        await auth.api.signOut({headers})
+        const response = await auth.api.signOut({headers, asResponse: true})
+        res.setHeaders(response.headers);
         res.status(StatusCodes.NO_CONTENT).send();
 
     }

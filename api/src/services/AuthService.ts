@@ -33,8 +33,7 @@ class AuthService {
                 asResponse: true
             })
 
-            const setCookieHeader = result.headers.get("set-cookie");
-            res.setHeader("set-cookie",setCookieHeader!)
+            res.setHeaders(result.headers)
                 .status(200)
                 .send("Erfolgreich angemeldet!")
 
