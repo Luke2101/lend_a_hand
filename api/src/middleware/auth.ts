@@ -1,17 +1,19 @@
-import express, {type Request} from "express";
+import type {Response, Request} from "express";
 import {auth} from "../lib/auth.js";
 import {StatusCodes} from "http-status-codes";
+import type {NextFunction} from "connect";
+import {fromNodeHeaders} from "better-auth/node";
+import logger from "../util/logger.js";
 
-export async function authenticateUser(req: express.Request, res: express.Response, next: express.NextFunction): Promise<void> {
-    const request = new Request("", {
-        method: req.method,
-        headers: new Headers(req.headers as Record<string, string>),
-    })
+export async function authenticateUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const headers = fromNodeHeaders(req.headers);
+    const session = await auth.api.getSession({headers});
 
-    const session = await auth.api.getSession(request)
-    if(!session) {
-        res.status(StatusCodes.UNAUTHORIZED).send("Not Authorized")
+    if(!session || !session.user) {
+        res.status(StatusCodes.UNAUTHORIZED).send("Ungültige Sitzung!");
+        return;
     }
+    req.session = session;
 
     next();
 }

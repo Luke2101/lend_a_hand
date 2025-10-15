@@ -7,6 +7,6 @@ import UserService from "../services/UserService.js";
 const router = express.Router();
 
 router.post("/info", UserService.getAccountInfo);
-
+router.post("/logout", UserService.logout);
 
 export default router;

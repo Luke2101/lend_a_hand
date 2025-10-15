@@ -4,6 +4,7 @@ import UserOperations from "../db/operations/userOperations.js";
 import {auth} from "../lib/auth.js";
 import type {SignInBody, SignUpBody} from "../schemas/authSchemas.js";
 import logger from "../util/logger.js";
+import {fromNodeHeaders} from "better-auth/node";
 
 class AuthService {
     public static async signUp(req: Request<{}, {}, SignUpBody>, res: Response) {
@@ -28,13 +29,20 @@ class AuthService {
                 body: {
                     email: req.body.email,
                     password: req.body.password,
-                }
+                },
+                asResponse: true
             })
+
+            const setCookieHeader = result.headers.get("set-cookie");
+            res.setHeader("set-cookie",setCookieHeader!)
+                .status(200)
+                .send("Erfolgreich angemeldet!")
+
             logger.debug(`User logged in with email=[${req.body.email}]`)
-            return res.status(200).json(result.token);
+
         }catch(err: any) {
             logger.debug(`User failed to log in with email=[${req.body.email}]`)
-            return res.status(StatusCodes.UNAUTHORIZED).send(err.body.code);
+            res.status(StatusCodes.UNAUTHORIZED).send(err.body.code);
         }
 
     }
