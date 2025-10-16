@@ -13,7 +13,7 @@ export async function authenticateUser(req: Request, res: Response, next: NextFu
         res.status(StatusCodes.UNAUTHORIZED).send("Ungültige Sitzung!");
         return;
     }
-    req.session = session;
-
+    req.session = session.session;
+    req.user = session.user;
     next();
 }
