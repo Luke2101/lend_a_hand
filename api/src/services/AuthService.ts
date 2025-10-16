@@ -24,26 +24,26 @@ class AuthService {
     }
 
     public static async signIn(req: Request<{}, {}, SignInBody>, res: Response) {
-        try {
-            const result = await auth.api.signInEmail({
-                body: {
-                    email: req.body.email,
-                    password: req.body.password,
-                },
-                asResponse: true
-            })
+        const result = await auth.api.signInEmail({
+            body: {
+                email: req.body.email,
+                password: req.body.password,
+            },
+            asResponse: true
+        })
 
-            res.setHeaders(result.headers)
-                .status(200)
-                .send("Erfolgreich angemeldet!")
-
-            logger.debug(`User logged in with email=[${req.body.email}]`)
-
-        }catch(err: any) {
+        if(!result.ok) {
             logger.debug(`User failed to log in with email=[${req.body.email}]`)
-            res.status(StatusCodes.UNAUTHORIZED).send(err.body.code);
+            res.status(StatusCodes.UNAUTHORIZED).send();
+            return;
         }
 
+
+        res.setHeaders(result.headers)
+            .status(200)
+            .send("Erfolgreich angemeldet!")
+
+        logger.debug(`User logged in with email=[${req.body.email}]`)
     }
 }
 export default AuthService;
