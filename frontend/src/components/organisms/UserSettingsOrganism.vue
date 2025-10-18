@@ -19,19 +19,12 @@ const toast = useToast();
 const userStore = useUserStore();
 
 
-const initialValuesName = computed(() => {
+const initialValues = computed(() => {
   if (!userStore.userInfo) return {};
 
   return {
     firstName: userStore.userInfo.prename,
     surname: userStore.userInfo.surname,
-  };
-});
-
-const initialValuesAddress = computed(() => {
-  if (!userStore.userInfo) return {};
-
-  return {
     street: userStore.userInfo.street,
     houseNumber: userStore.userInfo.houseNumber,
     zipCode: String(userStore.userInfo.plz),
@@ -40,15 +33,10 @@ const initialValuesAddress = computed(() => {
 });
 
 
-const resolverName = zodResolver(
+const resolver = zodResolver(
     z.object({
       firstName: z.string().min(1, { message: 'Vorname wird benötigt.' }),
       surname: z.string().min(1, { message: 'Nachname wird benötigt.' }),
-    })
-);
-
-const resolverAddress = zodResolver(
-    z.object({
       street: z.string().min(3, { message: 'Straße ist erforderlich.' }),
       houseNumber: z.string().min(1, { message: 'Hausnummer ist erforderlich.' }),
       zipCode: z.string().regex(/^\d{5}$/, { message: 'PLZ muss 5 Ziffern haben.' }),
@@ -57,40 +45,12 @@ const resolverAddress = zodResolver(
 );
 
 
-const onNameSubmit = async (e) => {
+const onSubmit = async (e) => {
   if (!e.valid) return;
 
   const payload = {
     prename: e.values.firstName,
     surname: e.values.surname,
-  };
-
-  try {
-    const response = await fetch('http://localhost:8080/users/update/name', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-      credentials: 'include',
-    });
-
-    if (response.ok) {
-      toast.add({ severity: 'success', summary: 'Erfolg', detail: 'Name erfolgreich geändert.', life: 3000 });
-      userStore.updateNameLocally({ firstName: e.values.firstName, surname: e.values.surname });
-    } else {
-      const errorMessage = await response.text() || 'Namensänderung fehlgeschlagen.';
-      toast.add({ severity: 'error', summary: 'Fehler', detail: errorMessage, life: 5000 });
-    }
-  } catch (error) {
-    console.log(error);
-    toast.add({ severity: 'error', summary: 'Verbindungsfehler', detail: 'Server nicht erreichbar.', life: 5000 });
-  }
-};
-
-
-const onAddressSubmit = async (e) => {
-  if (!e.valid) return;
-
-  const payload = {
     street: e.values.street,
     houseNumber: e.values.houseNumber,
     plz: Number.parseInt(e.values.zipCode),
@@ -98,7 +58,7 @@ const onAddressSubmit = async (e) => {
   };
 
   try {
-    const response = await fetch('http://localhost:8080/users/update/address', {
+    const response = await fetch('http://localhost:8080/user/update', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -106,7 +66,11 @@ const onAddressSubmit = async (e) => {
     });
 
     if (response.ok) {
-      toast.add({ severity: 'success', summary: 'Erfolg', detail: 'Adresse erfolgreich geändert.', life: 3000 });
+      toast.add({ severity: 'success', summary: 'Erfolg', detail: 'Daten erfolgreich geändert.', life: 3000 });
+      userStore.updateNameLocally({
+        firstName: e.values.firstName,
+        surname: e.values.surname
+      });
       userStore.updateAddressLocally({
         street: e.values.street,
         houseNumber: e.values.houseNumber,
@@ -114,7 +78,7 @@ const onAddressSubmit = async (e) => {
         city: e.values.city
       });
     } else {
-      const errorMessage = await response.text() || 'Adressänderung fehlgeschlagen.';
+      const errorMessage = await response.text() || 'Änderung fehlgeschlagen.';
       toast.add({ severity: 'error', summary: 'Fehler', detail: errorMessage, life: 5000 });
     }
   } catch (error) {
@@ -127,59 +91,44 @@ const onAddressSubmit = async (e) => {
 <template>
   <div class="card flex flex-col items-center justify-center">
     <Toast/>
-    <div class="w-full sm:w-96">
-      <TextAtom tag="h1" class="text-xl font-semibold mt-4">Benutzer-Einstellungen</TextAtom>
+    <TextAtom tag="h1" class="text-xl font-bold mt-4 mb-4">Benutzer-Einstellungen</TextAtom>
 
-      <div v-if="userStore.isLoading" class="flex justify-center items-center h-40">
-        <ProgressBar mode="indeterminate" class="mt-4 h-2!"/>
-      </div>
+    <div v-if="userStore.isLoading" class="flex justify-center items-center h-40">
+      <ProgressBar mode="indeterminate" class="mt-4 h-2!"/>
+    </div>
 
-      <div v-else-if="userStore.userInfo">
-        <Form
-            v-slot="$form"
-            :initialValues="initialValuesName"
-            :resolver="resolverName"
-            @submit="onNameSubmit"
-            validate-on="submit"
-            novalidate
-            class="flex flex-col gap-4 w-full"
-        >
-          <TextAtom tag="h2" class="text-base font-medium">Name</TextAtom>
-          <div class="flex gap-4">
-            <InputTextMolecule :form="$form" name="firstName" label="Vorname" type="text" icon="pi pi-user" class="flex-1" autofocus/>
-            <InputTextMolecule :form="$form" name="surname" label="Nachname" type="text" icon="pi pi-user" class="flex-1"/>
-          </div>
-          <Button type="submit" label="Name ändern" />
-        </Form>
+    <div v-else-if="userStore.userInfo">
+      <Form
+          v-slot="$form"
+          :initialValues="initialValues"
+          :resolver="resolver"
+          @submit="onSubmit"
+          validate-on="submit"
+          novalidate
+          class="flex flex-col gap-4 w-full sm:w-96"
+      >
+        <div class="flex gap-4">
+          <InputTextMolecule :form="$form" name="firstName" label="Vorname" type="text" icon="pi pi-user" class="flex-1" autofocus/>
+          <InputTextMolecule :form="$form" name="surname" label="Nachname" type="text" icon="pi pi-user" class="flex-1"/>
+        </div>
 
         <Divider align="center" type="horizontal" class="my-5"/>
 
-        <Form
-            v-slot="$form"
-            :initialValues="initialValuesAddress"
-            :resolver="resolverAddress"
-            @submit="onAddressSubmit"
-            validate-on="submit"
-            novalidate
-            class="flex flex-col gap-4 w-full"
-        >
-          <TextAtom tag="h2" class="text-base font-medium">Adresse</TextAtom>
-          <InputTextMolecule :form="$form" name="street" label="Straße" type="text" icon="pi pi-map"/>
-          <div class="flex gap-4">
-            <InputTextMolecule :form="$form" name="houseNumber" label="Haus-Nr." type="text" icon="pi pi-home" class="flex-1"/>
-            <InputTextMolecule :form="$form" name="zipCode" label="PLZ" type="text" icon="pi pi-box" class="flex-1"/>
-          </div>
-          <InputTextMolecule :form="$form" name="city" label="Ort" type="text" icon="pi pi-globe"/>
-          <Button type="submit" label="Adresse ändern" />
-        </Form>
-      </div>
+        <InputTextMolecule :form="$form" name="street" label="Straße" type="text" icon="pi pi-map"/>
+        <div class="flex gap-4">
+          <InputTextMolecule :form="$form" name="houseNumber" label="Haus-Nr." type="text" icon="pi pi-home" class="flex-1"/>
+          <InputTextMolecule :form="$form" name="zipCode" label="PLZ" type="text" icon="pi pi-box" class="flex-1"/>
+        </div>
+        <InputTextMolecule :form="$form" name="city" label="Ort" type="text" icon="pi pi-globe"/>
+        <Button type="submit" label="Daten ändern" />
+      </Form>
+    </div>
 
-      <div v-else-if="userStore.hasError" class="mt-4">
-        <Message severity="error">Die Benutzerdaten konnten nicht geladen werden. Bitte versuchen Sie es später erneut.</Message>
-      </div>
-      <div v-else class="mt-4">
-        <Message severity="error">Sie sind nicht angemeldet.</Message>
-      </div>
+    <div v-else-if="userStore.hasError" class="mt-4">
+      <Message severity="error">Die Benutzerdaten konnten nicht geladen werden. Bitte versuchen Sie es später erneut.</Message>
+    </div>
+    <div v-else class="mt-4">
+      <Message severity="error">Sie sind nicht angemeldet.</Message>
     </div>
   </div>
 </template>

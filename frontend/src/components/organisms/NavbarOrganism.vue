@@ -125,7 +125,7 @@ async function logout() {
                   {{ userStore.userInfo.prename }} {{ userStore.userInfo.surname }}
                 </div>
                 <router-link to="/user" custom v-slot="{ navigate }">
-                  <Button label="Bearbeieten" icon="pi pi-pen-to-square" severity="secondary" @click="navigate" />
+                  <Button label="Bearbeiten" icon="pi pi-pen-to-square" severity="secondary" @click="navigate" />
                 </router-link>
                 <Button label="Abmelden" icon="pi pi-sign-out" severity="danger" @click="logout" />
               </div>

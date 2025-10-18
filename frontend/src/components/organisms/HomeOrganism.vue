@@ -34,13 +34,13 @@ const testimonialCards = [
   },
   {
     avatarUrl: 'https://primefaces.org/cdn/primevue/images/avatar/asiyajavayant.png',
-    name: 'Marko P.',
+    name: 'Sarah T.',
     quote: 'Die Bohrmaschine brauche ich nur einmal im Jahr. Jetzt weiß ich, wen ich fragen kann. Super unkompliziert.',
     animation: 'animate-enter fade-in-10 animate-duration-1000'
   },
   {
     avatarUrl: 'https://primefaces.org/cdn/primevue/images/avatar/onyamalimba.png',
-    name: 'Sarah T.',
+    name: 'Marko P.',
     quote: 'Es ist schön zu wissen, dass man im Notfall nicht alleine ist. Die Community ist wirklich toll hier!',
     animation: 'animate-enter fade-in-10 slide-in-from-r-8 animate-duration-1000'
   }
