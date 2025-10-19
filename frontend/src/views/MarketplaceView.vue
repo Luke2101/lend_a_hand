@@ -2,10 +2,19 @@
 import CarouselOrganism from "@/components/organisms/CarouselOrganism.vue";
 import TextAtom from "@/components/atoms/TextAtom.vue";
 import Divider from "primevue/divider";
+import Button from "primevue/button";
+import RequestDialogOrganism from "@/components/organisms/RequestDialogOrganism.vue";
+import {ref} from "vue";
+
+const visible = ref();
 </script>
 
 <template>
-  <TextAtom tag="h2" class="text-xl font-bold mt-4 mb-4">Meine Anfragen</TextAtom>
+  <RequestDialogOrganism v-model:visible="visible"/>
+  <div class="flex flex-row justify-between mt-4 mb-4">
+    <TextAtom tag="h2" class="text-xl font-bold">Meine Anfragen</TextAtom>
+    <Button label="Anfrage Erstellen" icon="pi pi-plus" @click="visible = true"/>
+  </div>
   <CarouselOrganism/>
   <Divider align="left" type="horizontal"/>
   <TextAtom tag="h2" class="text-xl font-bold mt-4 mb-4">Anfragen anderer</TextAtom>
