@@ -60,15 +60,10 @@ export const useUserStore = defineStore('user', () => {
         }
     }
 
-    function updateNameLocally({ firstName, surname }: { firstName: string, surname: string }) {
+    function updateUserInfoLocally({ firstName, surname, street, houseNumber, plz, city }: { firstName: string, surname: string, street: string, houseNumber: string, plz: number, city: string }) {
         if (userInfo.value) {
             userInfo.value.prename = firstName;
             userInfo.value.surname = surname;
-        }
-    }
-
-    function updateAddressLocally({ street, houseNumber, plz, city }: { street: string, houseNumber: string, plz: number, city: string }) {
-        if (userInfo.value) {
             userInfo.value.street = street;
             userInfo.value.houseNumber = houseNumber;
             userInfo.value.plz = plz;
@@ -89,7 +84,6 @@ export const useUserStore = defineStore('user', () => {
         userInfo,
         isLoading,
         hasError,
-        updateNameLocally,
-        updateAddressLocally,
+        updateUserInfoLocally,
     };
 });

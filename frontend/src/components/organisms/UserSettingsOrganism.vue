@@ -67,11 +67,9 @@ const onSubmit = async (e) => {
 
     if (response.ok) {
       toast.add({ severity: 'success', summary: 'Erfolg', detail: 'Daten erfolgreich geändert.', life: 3000 });
-      userStore.updateNameLocally({
+      userStore.updateUserInfoLocally({
         firstName: e.values.firstName,
-        surname: e.values.surname
-      });
-      userStore.updateAddressLocally({
+        surname: e.values.surname,
         street: e.values.street,
         houseNumber: e.values.houseNumber,
         plz: Number.parseInt(e.values.zipCode),
