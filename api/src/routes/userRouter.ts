@@ -1,6 +1,5 @@
 import express from "express";
 import UserService from "../services/UserService.js";
-import UserSerivce from "../services/UserService.js";
 import {validateBody} from "../middleware/validate.js";
 import {updateSchema} from "../schemas/userSchemas.js";
 

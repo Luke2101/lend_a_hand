@@ -29,6 +29,7 @@ class UserOperations {
             return true;
         }catch (err) {
             logger.error(`Unable to create user with email=[${chalk.yellow(email)}]`)
+            logger.error(err)
             return false;
         }
 

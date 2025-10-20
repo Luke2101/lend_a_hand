@@ -5,8 +5,8 @@ import authRoutes from "./routes/authRouter.js";
 import userRouter from "./routes/userRouter.js";
 import {setupSwagger} from "./swagger.js";
 import {authenticateUser} from "./middleware/authenticate.js";
-const app = express();
-const port = "8080";
+export const app = express();
+export const port = "8080";
 
 
 
@@ -24,7 +24,5 @@ app.use("/user", authenticateUser,userRouter)
 
 
 
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`);
-});
+
 

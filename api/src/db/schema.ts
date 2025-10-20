@@ -1,5 +1,3 @@
-// @ts-ignore
-export * from "./auth-schema.ts"
-// @ts-ignore
+export * from './auth-schema.ts'
 export * from "./tables.ts"
 

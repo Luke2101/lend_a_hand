@@ -12,15 +12,9 @@ class AuthService {
         if(emailExists) {
             return res.status(StatusCodes.CONFLICT).send("Benutzer mit dieser Email-Adresse existiert bereits")
         }
-        const creationPromise = UserOperations.createUser(req.body)
-
-        creationPromise.then(() => {
-            return res.status(StatusCodes.CREATED).send("Benutzer erfolgreich registriert!")
-        }).catch(() => {
-            return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send("Fehler beim erstellen eines Benutzers")
-        })
-
-
+        const userCreated = await UserOperations.createUser(req.body);
+        if(!userCreated) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send("Fehler beim erstellen eines Benutzers")
+        return res.status(StatusCodes.CREATED).send("Benutzer erfolgreich registriert!")
     }
 
     public static async signIn(req: Request<{}, {}, SignInBody>, res: Response) {
@@ -41,7 +35,7 @@ class AuthService {
 
         res.setHeaders(result.headers)
             .status(200)
-            .send("Erfolgreich angemeldet!")
+            .send({message: "Erfolgreich angemeldet!" })
 
         logger.debug(`User logged in with email=[${req.body.email}]`)
     }

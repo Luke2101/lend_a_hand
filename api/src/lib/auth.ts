@@ -2,6 +2,7 @@ import {betterAuth} from "better-auth";
 import {drizzleAdapter} from "better-auth/adapters/drizzle";
 import {drizzle} from "drizzle-orm/mysql2";
 import {account, session, user, verification} from "../db/auth-schema.js";
+import {admin} from "better-auth/plugins";
 
 if(process.env.DATABASE_URL == undefined) throw new Error("Missing database URL");
 export const db = drizzle(process.env.DATABASE_URL)
@@ -24,6 +25,9 @@ export const auth = betterAuth({
         expiresIn: 60 * 60 * 3,
     },
     user: {
+        deleteUser: {
+            enabled: true
+        },
         additionalFields: {
             prename: { type: "string", required: true },
             surname: { type: "string", required: true },
@@ -32,5 +36,8 @@ export const auth = betterAuth({
             houseNumber: { type: "string" , required: true },
             city: { type: "string" , required: true },
         }
-    }
+    },
+    plugins: [
+        //admin()
+    ]
 })
