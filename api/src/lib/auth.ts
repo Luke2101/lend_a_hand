@@ -3,6 +3,7 @@ import {drizzleAdapter} from "better-auth/adapters/drizzle";
 import {drizzle} from "drizzle-orm/mysql2";
 import {account, session, user, verification} from "../db/auth-schema.js";
 import {admin} from "better-auth/plugins";
+import {requestTable} from "../db/tables.js";
 
 if(process.env.DATABASE_URL == undefined) throw new Error("Missing database URL");
 export const db = drizzle(process.env.DATABASE_URL)
@@ -15,6 +16,7 @@ export const auth = betterAuth({
             session,
             account,
             verification,
+            requestTable
         }
     }),
     emailAndPassword: {

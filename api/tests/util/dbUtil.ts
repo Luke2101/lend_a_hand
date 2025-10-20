@@ -1,7 +1,6 @@
-import testUsers, {type TUser} from "../fixtures/users.js";
+import {type TUser} from "../fixtures/users.js";
 import {auth, db} from "../../src/lib/auth.js";
 import DatabaseError from "../../src/errors/DatabaseError.js";
-import users from "../fixtures/users.js";
 import {user} from "../../src/db/auth-schema.js";
 import {eq} from "drizzle-orm";
 
