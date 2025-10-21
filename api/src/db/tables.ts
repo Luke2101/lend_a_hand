@@ -1,5 +1,6 @@
 import { mysqlTable, varchar, int, text, datetime } from "drizzle-orm/mysql-core";
-import { user } from "./auth-schema.js";
+//@ts-ignore
+import { user } from "./auth-schema.ts";
 
 
 
