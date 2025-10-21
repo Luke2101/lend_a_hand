@@ -1,6 +1,4 @@
 import { mysqlTable, varchar, int, text, datetime } from "drizzle-orm/mysql-core";
-//@ts-ignore
-import { user } from "./auth-schema.ts";
 
 
 
@@ -10,7 +8,7 @@ export const requestTable = mysqlTable("request", {
     category: varchar("category", { length: 255 }).notNull(),
     credits: int("credits").notNull(), 
     description: text("description").notNull(),
-    creator: varchar("creator", {length: 36}).references(() => user.id ),
+    creator: varchar("creator", {length: 36}),
     from: datetime("from"),
     to: datetime("to"),
 });
