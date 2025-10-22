@@ -75,21 +75,21 @@ const formSchema = z.object({
       const isDateRequired = data.category && (data.category.code === 'rent' || data.category.code === 'help');
 
       if (isDateRequired) {
-        if (!data.startDate) {
+        if (!startDate) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: 'Ein Startdatum ist bei dieser Kategorie zwingend erforderlich.',
             path: ['startDate'],
           });
         }
-        if (!data.endDate) {
+        if (!endDate) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: 'Ein Enddatum ist bei dieser Kategorie zwingend erforderlich.',
             path: ['endDate'],
           });
         }
-        if (data.startDate && data.endDate && data.endDate < data.startDate) {
+        if (startDate && endDate && endDate < startDate) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: 'Das Enddatum darf nicht vor dem Startdatum liegen.',
@@ -293,7 +293,3 @@ const onSubmit = async (event: FormSubmitEvent<FormValues>) => {
     </Form>
   </Dialog>
 </template>
-
-<style scoped>
-
-</style>

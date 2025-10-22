@@ -48,7 +48,3 @@ const inputId = `input-${props.name}-${Math.random().toString(36).substring(7)}`
     </Message>
   </div>
 </template>
-
-<style scoped>
-
-</style>

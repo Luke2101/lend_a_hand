@@ -5,7 +5,3 @@ import LoginOrganism from "@/components/organisms/LoginOrganism.vue";
 <template>
   <LoginOrganism/>
 </template>
-
-<style scoped>
-
-</style>

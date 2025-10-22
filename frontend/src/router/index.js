@@ -4,7 +4,7 @@ import HomeView from "@/views/HomeView.vue";
 import MarketplaceView from "@/views/MarketplaceView.vue";
 import SignUpView from "@/views/SignUpView.vue";
 import LoginView from "@/views/LoginView.vue";
-import UserSettingsOrganism from "@/views/UserSettingsOrganism.vue";
+import UserSettingsView from "@/views/UserSettingsView.vue";
 
 const routes = [
     {
@@ -34,7 +34,7 @@ const routes = [
     {
         path: '/user',
         name: 'User',
-        component: UserSettingsOrganism
+        component: UserSettingsView
     }
 ];
 

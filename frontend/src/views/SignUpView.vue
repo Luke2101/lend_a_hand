@@ -5,7 +5,3 @@ import SignUpOrganism from "@/components/organisms/SignUpOrganism.vue";
 <template>
   <SignUpOrganism/>
 </template>
-
-<style scoped>
-
-</style>

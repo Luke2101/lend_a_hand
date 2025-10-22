@@ -70,7 +70,7 @@ const onFormSubmit = async (e) => {
     <Toast/>
 
     <Form
-        v-slot="$form"
+        v-slot="form"
         :initialValues
         :resolver
         @submit="onFormSubmit"
@@ -78,9 +78,9 @@ const onFormSubmit = async (e) => {
         :validateOnBlur="true"
         class="flex flex-col gap-4 w-full sm:w-96"
     >
-      <InputTextMolecule :form="$form" name="email" label="E-Mail" type="email" icon="pi pi-envelope" autofocus/>
+      <InputTextMolecule :form="form" name="email" label="E-Mail" type="email" icon="pi pi-envelope" autofocus/>
 
-      <PasswordMolecule :form="$form" :feedback="false"/>
+      <PasswordMolecule :form="form" :feedback="false"/>
 
       <Button type="submit" label="Anmelden" />
     </Form>
@@ -92,7 +92,3 @@ const onFormSubmit = async (e) => {
     />
   </div>
 </template>
-
-<style scoped>
-
-</style>

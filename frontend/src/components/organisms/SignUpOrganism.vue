@@ -1,18 +1,18 @@
 <script setup lang="ts">
+import { z } from 'zod';
+import { zodResolver } from '@primevue/forms/resolvers/zod';
+import { useToast } from 'primevue/usetoast';
+import {useRouter} from 'vue-router';
+
 import Form from '@primevue/forms/form';
 import Button from 'primevue/button';
 import Toast from 'primevue/toast';
-
-import { zodResolver } from '@primevue/forms/resolvers/zod';
-import { z } from 'zod';
-import { useToast } from 'primevue/usetoast';
 import PasswordMolecule from "@/components/molecules/PasswordMolecule.vue";
 import Checkbox from "primevue/checkbox";
 import InputTextMolecule from "@/components/molecules/InputTextMolecule.vue";
 import Divider from "primevue/divider";
 import AuthToggleMolecule from "@/components/molecules/AuthToggleMolecule.vue";
 import TextAtom from "@/components/atoms/TextAtom.vue";
-import {useRouter} from 'vue-router';
 
 const router = useRouter();
 
@@ -100,7 +100,7 @@ const onFormSubmit = async (e) => {
     <Toast/>
 
     <Form
-        v-slot="$form"
+        v-slot="form"
         :initialValues
         :resolver
         @submit="onFormSubmit"
@@ -109,32 +109,29 @@ const onFormSubmit = async (e) => {
         class="flex flex-col gap-4 w-full sm:w-96"
     >
       <div class="flex gap-4">
-        <InputTextMolecule :form="$form" name="firstName" label="Vorname" type="text" icon="pi pi-user" class="flex-1" autofocus/>
+        <InputTextMolecule :form="form" name="firstName" label="Vorname" type="text" icon="pi pi-user" class="flex-1" autofocus/>
 
-        <InputTextMolecule :form="$form" name="surname" label="Nachname" type="text" icon="pi pi-user" class="flex-1"/>
+        <InputTextMolecule :form="form" name="surname" label="Nachname" type="text" icon="pi pi-user" class="flex-1"/>
       </div>
 
-      <InputTextMolecule :form="$form" name="email" label="E-Mail" type="email" icon="pi pi-envelope"/>
+      <InputTextMolecule :form="form" name="email" label="E-Mail" type="email" icon="pi pi-envelope"/>
 
-      <PasswordMolecule :form="$form" :feedback="true"/>
+      <PasswordMolecule :form="form" :feedback="true"/>
 
 
       <Divider align="left" type="horizontal"/>
 
-      <InputTextMolecule :form="$form" name="street" label="Straße" type="text" icon="pi pi-map"/>
+      <InputTextMolecule :form="form" name="street" label="Straße" type="text" icon="pi pi-map"/>
 
       <div class="flex gap-4">
-        <InputTextMolecule :form="$form" name="houseNumber" label="Haus-Nr." type="text" icon="pi pi-home" class="flex-1"/>
-        <InputTextMolecule :form="$form" name="zipCode" label="PLZ" type="text" icon="pi pi-box" class="flex-1"/>
+        <InputTextMolecule :form="form" name="houseNumber" label="Haus-Nr." type="text" icon="pi pi-home" class="flex-1"/>
+        <InputTextMolecule :form="form" name="zipCode" label="PLZ" type="text" icon="pi pi-box" class="flex-1"/>
       </div>
 
-      <InputTextMolecule :form="$form" name="city" label="Ort" type="text" icon="pi pi-globe"/>
+      <InputTextMolecule :form="form" name="city" label="Ort" type="text" icon="pi pi-globe"/>
 
-
-
-
-      <div class="flex items-center gap-2">
-        <Checkbox id="accept" name="accept" :binary="true" />
+      <div class="flex gap-2">
+        <Checkbox id="accept" name="accept" :binary="true" class="mt-1" />
         <label for="accept">Ich stimme den Allgemeinen Geschäftsbedingungen zu.</label>
       </div>
 
@@ -148,7 +145,3 @@ const onFormSubmit = async (e) => {
     />
   </div>
 </template>
-
-<style scoped>
-
-</style>

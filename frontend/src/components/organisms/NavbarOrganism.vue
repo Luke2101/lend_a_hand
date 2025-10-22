@@ -137,11 +137,7 @@ async function logout() {
   </div>
 </template>
 
-<style>
-#app {
-  display: flex;
-  flex-direction: column;
-}
+<style scoped>
 .app-logo {
   width: 40px;
   height: 40px;

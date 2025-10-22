@@ -1,23 +1,21 @@
 <script setup lang="ts">
+import { computed } from 'vue';
+import { useUserStore } from '@/stores/user';
+import { z } from 'zod';
+import { zodResolver } from '@primevue/forms/resolvers/zod';
+import { useToast } from 'primevue/usetoast';
+
 import Form from '@primevue/forms/form';
 import Button from 'primevue/button';
 import Toast from 'primevue/toast';
 import Divider from 'primevue/divider';
 import ProgressBar from 'primevue/progressbar';
 import Message from "primevue/message";
-
-import { zodResolver } from '@primevue/forms/resolvers/zod';
-import { z } from 'zod';
-import { useToast } from 'primevue/usetoast';
 import InputTextMolecule from "@/components/molecules/InputTextMolecule.vue";
 import TextAtom from "@/components/atoms/TextAtom.vue";
 
-import { computed } from 'vue';
-import { useUserStore } from '@/stores/user';
-
 const toast = useToast();
 const userStore = useUserStore();
-
 
 const initialValues = computed(() => {
   if (!userStore.userInfo) return {};
@@ -32,7 +30,6 @@ const initialValues = computed(() => {
   };
 });
 
-
 const resolver = zodResolver(
     z.object({
       firstName: z.string().min(1, { message: 'Vorname wird benötigt.' }),
@@ -43,7 +40,6 @@ const resolver = zodResolver(
       city: z.string().min(2, { message: 'Ort ist erforderlich.' }),
     })
 );
-
 
 const onSubmit = async (e) => {
   if (!e.valid) return;
@@ -130,7 +126,3 @@ const onSubmit = async (e) => {
     </div>
   </div>
 </template>
-
-<style scoped>
-
-</style>

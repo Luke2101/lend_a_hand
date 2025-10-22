@@ -5,7 +5,3 @@ import HomeOrganism from "@/components/organisms/HomeOrganism.vue";
 <template>
   <HomeOrganism/>
 </template>
-
-<style scoped>
-
-</style>

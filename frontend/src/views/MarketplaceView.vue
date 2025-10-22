@@ -21,7 +21,3 @@ const visible = ref();
   <CarouselOrganism :ownRequests="false"/>
   <div class="h-[5rem]"></div>
 </template>
-
-<style scoped>
-
-</style>

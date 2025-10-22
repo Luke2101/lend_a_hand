@@ -17,7 +17,3 @@ defineProps<{
     </RouterLink>
   </p>
 </template>
-
-<style scoped>
-
-</style>

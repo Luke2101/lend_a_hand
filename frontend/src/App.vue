@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import NavbarOrganism from "@/components/organisms/NavbarOrganism.vue";
 </script>
 
@@ -9,9 +9,3 @@ import NavbarOrganism from "@/components/organisms/NavbarOrganism.vue";
     <router-view />
   </main>
 </template>
-
-<style>
-#app{
-  width: 100%;
-}
-</style>

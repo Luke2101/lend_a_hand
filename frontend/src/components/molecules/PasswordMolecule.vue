@@ -6,7 +6,6 @@ import FloatLabel from "primevue/floatlabel";
 import IconField from "primevue/iconfield";
 import InputIcon from "primevue/inputicon";
 
-
 defineProps<{
   form: any;
   feedback: boolean;
@@ -57,7 +56,3 @@ defineProps<{
     </Message>
   </div>
 </template>
-
-<style scoped>
-
-</style>

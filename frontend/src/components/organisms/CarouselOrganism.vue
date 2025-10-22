@@ -106,7 +106,3 @@ const responsiveOptions: ResponsiveOption[] = [
     </Carousel>
   </div>
 </template>
-
-<style scoped>
-
-</style>
