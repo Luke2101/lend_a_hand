@@ -12,13 +12,13 @@ const visible = ref();
 <template>
   <RequestDialogOrganism v-model:visible="visible"/>
   <div class="flex flex-row justify-between mt-4 mb-4">
-    <TextAtom tag="h2" class="text-xl font-bold">Meine Anfragen</TextAtom>
+    <TextAtom tag="h2" class="text-xl font-bold">Eigene Anfragen</TextAtom>
     <Button label="Anfrage Erstellen" icon="pi pi-plus" @click="visible = true"/>
   </div>
-  <CarouselOrganism/>
+  <CarouselOrganism ownRequests/>
   <Divider align="left" type="horizontal"/>
-  <TextAtom tag="h2" class="text-xl font-bold mt-4 mb-4">Anfragen anderer</TextAtom>
-  <CarouselOrganism/>
+  <TextAtom tag="h2" class="text-xl font-bold mt-4 mb-4">Anfragen deiner Nachbarn</TextAtom>
+  <CarouselOrganism :ownRequests="false"/>
   <div class="h-[5rem]"></div>
 </template>
 

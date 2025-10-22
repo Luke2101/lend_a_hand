@@ -69,7 +69,15 @@ const onFormSubmit = async (e) => {
     <TextAtom tag="h1" class="text-xl font-bold mt-4 mb-4">Anmelden</TextAtom>
     <Toast/>
 
-    <Form v-slot="$form" :initialValues :resolver @submit="onFormSubmit" validate-on="submit" novalidate class="flex flex-col gap-4 w-full sm:w-96">
+    <Form
+        v-slot="$form"
+        :initialValues
+        :resolver
+        @submit="onFormSubmit"
+        :validateOnValueUpdate="false"
+        :validateOnBlur="true"
+        class="flex flex-col gap-4 w-full sm:w-96"
+    >
       <InputTextMolecule :form="$form" name="email" label="E-Mail" type="email" icon="pi pi-envelope" autofocus/>
 
       <PasswordMolecule :form="$form" :feedback="false"/>

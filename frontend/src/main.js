@@ -13,6 +13,8 @@ import AnimateOnScroll from 'primevue/animateonscroll';
 import Ripple from 'primevue/ripple';
 import {ToastService} from "primevue";
 import {definePreset} from "@primeuix/themes";
+import FocusTrap from 'primevue/focustrap';
+import ConfirmationService from 'primevue/confirmationservice';
 
 const app = createApp(App)
 const pinia = createPinia();
@@ -77,6 +79,10 @@ app.use(pinia);
 app.use(router)
 
 app.use(ToastService)
+
+app.use(ConfirmationService);
+
+app.directive('focustrap', FocusTrap);
 
 app.directive('ripple', Ripple);
 
