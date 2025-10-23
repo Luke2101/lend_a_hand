@@ -3,7 +3,7 @@ export type SRequest = {
     title: string;
     category: string;
     credits: number;
-    description: string | undefined;
+    description?: string;
     from?: string;
     to?: string;
 }

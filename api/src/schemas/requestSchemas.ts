@@ -15,6 +15,12 @@ export const deleteRequestSchema = z.object({
     id: z.int()
 })
 
+export const updateRequestQuerySchema = z.object({
+    id: z.coerce.number().int().positive(),
+})
+
 // Type inference for TypeScript
 export type CreateRequestBody = z.infer<typeof createRequestSchema>;
 export type DeleteRequestBody = z.infer<typeof deleteRequestSchema>;
+
+export type UpdateQueryParams = z.infer<typeof updateRequestQuerySchema>;
