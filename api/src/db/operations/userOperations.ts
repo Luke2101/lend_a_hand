@@ -5,6 +5,8 @@ import type {SignUpBody} from "../../schemas/authSchemas.js";
 import DatabaseError from "../../errors/DatabaseError.js";
 import chalk, {colorNames, colors} from "chalk";
 import logger from "../../util/logger.js";
+import {StatusCodes} from "http-status-codes";
+import type {UpdateUserBody} from "../../schemas/userSchemas.js";
 
 class UserOperations {
 
@@ -35,6 +37,17 @@ class UserOperations {
 
     }
 
+    public static async updateUser(updateBody: UpdateUserBody, userId: string) {
+        try {
+            await db.update(user).set(updateBody).where(eq(user.id, userId))
+            return true;
+        } catch (err: any) {
+            logger.error(err);
+            return false;
+
+        }
+    }
+
 
     /**
      * @throws DatabaseError if the database is not reachable
@@ -45,7 +58,8 @@ class UserOperations {
             const result = await db.select({email: user.email}).from(user).where(eq(user.email, email));
             return result.length > 0;
         }catch(err: any) {
-            throw new DatabaseError(err);
+            console.error(err)
+            return false;
         }
     }
 }

@@ -1,10 +1,10 @@
-import type {User} from "better-auth";
+import type {CUser} from "./types.js";
 
 declare global {
     namespace Express {
         export interface Request {
             session?: Session;
-            user?: User
+            user?: CUser
         }
     }
 }

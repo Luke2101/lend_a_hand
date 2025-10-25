@@ -2,6 +2,7 @@ import express from "express";
 import AuthService from "../services/AuthService.js";
 import { validateBody } from "../middleware/validate.js";
 import { signInSchema, signUpSchema } from "../schemas/authSchemas.js";
+import AuthController from "../controllers/AuthController.js";
 
 const router = express.Router();
 
@@ -68,7 +69,7 @@ const router = express.Router();
  *       500:
  *         description: Internal server error
  */
-router.post("/signup", validateBody(signUpSchema), AuthService.signUp);
+router.post("/signup", validateBody(signUpSchema), AuthController.signUp);
 
 /**
  * @swagger
@@ -100,6 +101,6 @@ router.post("/signup", validateBody(signUpSchema), AuthService.signUp);
  *       401:
  *         description: Invalid credentials
  */
-router.post("/login", validateBody(signInSchema), AuthService.signIn);
+router.post("/login", validateBody(signInSchema), AuthController.signIn);
 
 export default router;

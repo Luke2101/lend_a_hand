@@ -1,118 +1,95 @@
-import type {Request, Response} from "express";
-import type {CreateRequestBody, DeleteRequestBody, UpdateQueryParams} from "../schemas/requestSchemas.js";
+import type {CreateRequestBody} from "../schemas/requestSchemas.js";
 import RequestOperations from "../db/operations/requestOperations.js";
-import {StatusCodes} from "http-status-codes";
-import type {User} from "better-auth";
-import type {SRequest} from "../types.js";
 import requestOperations from "../db/operations/requestOperations.js";
+import {StatusCodes} from "http-status-codes";
+import type {SRequest} from "../types.js";
 
 class RequestService {
 
     private static USER_MAX_PENDING_REQUESTS  = 5;
 
-    public static async createRequest(req: Request<{},{},CreateRequestBody>, res: Response) {
-
-        const creator = req.user as User;
-
-        const canCreate = await RequestService.checkIfUserCanIssueRequest(creator);
-        if(!canCreate) {
-            res.status(StatusCodes.FORBIDDEN).send({message: "REQUEST_LIMIT_REACHED"})
-            return;
-        }
-
-        const result = await RequestOperations.createRequest(req.body, creator.id)
-        if(!result) {
-            res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({message: "INTERNAL_SERVER_ERROR"})
-            return;
-        }
-
-        res.status(StatusCodes.CREATED).send(result)
+    public static async createRequest(creatorId: string, requestBody: CreateRequestBody) {
+        const canCreate = await RequestService.checkIfUserCanIssueRequest(creatorId);
+        if(!canCreate) return StatusCodes.FORBIDDEN;
+        const result = await RequestOperations.createRequest(requestBody, creatorId)
+        if(!result) return StatusCodes.INTERNAL_SERVER_ERROR;
+        return result;
     }
 
 
-    public static async deleteRequest(req: Request<{}, {}, DeleteRequestBody>, res: Response) {
-        const didUserCreateRequest = await RequestService.didUserCreateRequest(req.user as User, req.body.id);
-        if(!didUserCreateRequest) {
-            res.status(StatusCodes.FORBIDDEN).send({message: "REQUEST_CREATOR_TOKEN_MISMATCH"})
-            return;
-        }
-        const deleteDidSucceed = await RequestOperations.deleteRequest(req.body.id)
-        if(!deleteDidSucceed) {
-            res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({message: "ERROR_DURING_DELETION"})
-            return;
-        }
-
-        res.status(StatusCodes.OK).send({message: "DELETED"})
+    public static async deleteRequest(userId: string, requestId: number) {
+        const didUserCreateRequest = await RequestService.didUserCreateRequest(userId, requestId);
+        if(!didUserCreateRequest) return StatusCodes.FORBIDDEN;
+        const deleteDidSucceed = await RequestOperations.deleteRequest(requestId)
+        if(!deleteDidSucceed) return StatusCodes.INTERNAL_SERVER_ERROR;
+        return StatusCodes.OK;
     }
 
-    public static async updateRequest(req: Request<{}, {}, CreateRequestBody, UpdateQueryParams>, res: Response) {
-        const requestId = req.query.id;
-
-
-
-        const didUserCreateRequest = await RequestService.didUserCreateRequest(req.user as User, requestId);
-        if(!didUserCreateRequest) {
-            res.status(StatusCodes.FORBIDDEN).send({message: "REQUEST_CREATOR_TOKEN_MISMATCH"})
-            return;
-        }
-
-        const reqId = req.query.id;
-
+    public static async updateRequest(requestId: number, userId: string, requestBody: CreateRequestBody) {
+        const didUserCreateRequest = await RequestService.didUserCreateRequest(userId, requestId);
+        if(!didUserCreateRequest) return StatusCodes.FORBIDDEN;
         const request: SRequest = {
-            id: reqId,
-            credits: req.body.credits,
-            category: req.body.category,
-            title: req.body.title,
-            from: req.body.from,
-            to: req.body.to,
-            description: req.body.description
+            id: requestId,
+            credits: requestBody.credits,
+            category: requestBody.category,
+            title: requestBody.title,
+            from: requestBody.from,
+            to: requestBody.to,
+            description: requestBody.description
         } as SRequest
-
         const didRequestUpdate = await RequestOperations.updateRequest(request)
+        if(!didRequestUpdate) return StatusCodes.INTERNAL_SERVER_ERROR;
+        return StatusCodes.OK;
 
-        if(!didRequestUpdate) {
-            res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({message: "UNABLE_TO_UPDATE_REQUEST"})
-            return;
-        }
-        res.status(StatusCodes.OK).send({message: "REQUEST_UPDATED"})
     }
 
 
-    public static async acceptRequest(req: Request<{},{}, {},UpdateQueryParams>, res: Response) {
-        const reqId = req.query.id;
-        const userId = req.user!.id;
-        const originalRequest = await requestOperations.getRequestById(reqId);
-        if(originalRequest == undefined)        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
-        if(originalRequest == null)             return res.status(StatusCodes.BAD_REQUEST).send({message: "REQUEST_NOT_FOUND"})
-        if(originalRequest.creator == userId)   return res.status(StatusCodes.FORBIDDEN).send({message: "CANNOT_ACCEPT_OWN_REQUESTS"});
-        if(originalRequest.accepted_by != null) return res.status(StatusCodes.FORBIDDEN).send({message: "REQUEST_ALREADY_ASSIGNED"});
+    public static async acceptRequest(requestId: number, userId: string) {
+        const originalRequest = await requestOperations.getRequestById(requestId);
+        if(originalRequest === undefined)        return StatusCodes.INTERNAL_SERVER_ERROR;
+        if(originalRequest === null)             return StatusCodes.NOT_FOUND;
+        if(originalRequest.creator == userId)   return StatusCodes.FORBIDDEN;
+        if(originalRequest.accepted_by != null) return StatusCodes.FORBIDDEN;
 
-        const result = await RequestOperations.acceptRequest(reqId, userId);
-        if(!result) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
-        return res.status(StatusCodes.OK).send({message: "REQUEST_ACCEPTED", id: reqId})
+        const result = await RequestOperations.acceptRequest(requestId, userId);
+        if(!result) return StatusCodes.INTERNAL_SERVER_ERROR;
+        return StatusCodes.OK;
     }
 
-    public static async getRequest(req: Request<{},{}, {},UpdateQueryParams>, res: Response) {
-        const reqId = req.query.id;
-        const originalRequest = await requestOperations.getRequestById(reqId);
-        if(originalRequest == undefined)        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
-        if(originalRequest == null)             return res.status(StatusCodes.BAD_REQUEST).send({message: "REQUEST_NOT_FOUND"})
+    public static async getRequest(requestId: number) {
+        const originalRequest = await requestOperations.getRequestById(requestId);
+        if(originalRequest === undefined)        return StatusCodes.INTERNAL_SERVER_ERROR;
+        if(originalRequest === null)             return StatusCodes.NOT_FOUND;
+        return originalRequest;
+    }
 
-        return res.status(200).send(originalRequest);
+    public static async getRequestsNearby(userId: string, userPlz: number) {
+        const results = await RequestOperations.getOpenRequestsNearbyForPlz(userPlz)
+        if(results == undefined) return StatusCodes.INTERNAL_SERVER_ERROR;
+        const ownRequestsOfUser = await requestOperations.getAllUserRequests(userId);
+        if(ownRequestsOfUser == undefined) return StatusCodes.INTERNAL_SERVER_ERROR;
+        const ownRequestsOfUserIds = ownRequestsOfUser.map(request => request.id);
+        return results.filter(request => !ownRequestsOfUserIds.includes(request.id));
+
+    }
+
+    public static async getRequestsForUser(userId: string) {
+        const results = await RequestOperations.getAllUserRequests(userId);
+        if(results === undefined) return StatusCodes.INTERNAL_SERVER_ERROR;
+        if(results === null) return [];
+        return results;
     }
 
 
-    private static async checkIfUserCanIssueRequest(user:User) {
-        const pendingReqForUser = await RequestOperations.getAllUserRequests(user)
+    private static async checkIfUserCanIssueRequest(userId: string) {
+        const pendingReqForUser = await RequestOperations.getAllUserRequests(userId)
         if(pendingReqForUser == undefined) return false;
         return pendingReqForUser.length < RequestService.USER_MAX_PENDING_REQUESTS;
-
     }
 
-    private static async didUserCreateRequest(user: User, requestId: number): Promise<boolean> {
-        const pendingReqForUser = await RequestOperations.getAllUserRequests(user);
+    private static async didUserCreateRequest(userId: string, requestId: number): Promise<boolean> {
+        const pendingReqForUser = await RequestOperations.getAllUserRequests(userId);
         if(pendingReqForUser == undefined) return false;
-        console.log(pendingReqForUser)
         return pendingReqForUser.filter(req => req.id == requestId).length > 0
     }
 

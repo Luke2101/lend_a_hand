@@ -4,9 +4,12 @@ import {drizzle} from "drizzle-orm/mysql2";
 import {account, session, user, verification} from "../db/auth-schema.js";
 import {admin} from "better-auth/plugins";
 import {requestTable} from "../db/tables.js";
+import DatabaseError from "../errors/DatabaseError.js";
 
-if(process.env.DATABASE_URL == undefined) throw new Error("Missing database URL");
-export const db = drizzle(process.env.DATABASE_URL)
+if(process.env.DB_USER == undefined) throw new DatabaseError("Missing database user in config");
+if(process.env.DB_NAME == undefined) throw new DatabaseError("Missing database name in config");
+if(process.env.DB_HOST == undefined) throw new DatabaseError("Missing database host in config");
+export const db = drizzle(`mysql://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}/${process.env.DB_NAME}`)
 
 export const auth = betterAuth({
     database: drizzleAdapter(db, {
@@ -39,7 +42,5 @@ export const auth = betterAuth({
             city: { type: "string" , required: true },
         }
     },
-    plugins: [
-        //admin()
-    ]
+    plugins: []
 })

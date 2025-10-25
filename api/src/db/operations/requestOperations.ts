@@ -3,8 +3,9 @@ import {db} from "../../lib/auth.js";
 import {requestTable} from "../tables.js";
 import logger from "../../util/logger.js";
 import type {User} from "better-auth";
-import {eq} from "drizzle-orm";
+import {and, eq, isNull, like} from "drizzle-orm";
 import type {SRequest} from "../../types.js";
+import {user} from "../auth-schema.js";
 
 
 class RequestOperations {
@@ -27,9 +28,9 @@ class RequestOperations {
 
     }
 
-    public static async getAllUserRequests(user: User) {
+    public static async getAllUserRequests(userId: string) {
         try {
-            return await db.select().from(requestTable).where(eq(requestTable.creator, user.id))
+            return await db.select().from(requestTable).where(eq(requestTable.creator, userId))
         }catch (err) {
             return undefined;
         }
@@ -89,6 +90,37 @@ class RequestOperations {
         } catch (err) {
             logger.error(`Unable to accept request with requestId=${reqId}`)
             return false;
+        }
+    }
+
+    public static async getOpenRequestsNearbyForPlz(plz: number) {
+        try {
+            const firstThreePlzDigits = plz.toString().slice(0,3)
+            return await db.select(
+                {
+                    id: requestTable.id,
+                    title: requestTable.title,
+                    description: requestTable.description,
+                    credits: requestTable.credits,
+                    category: requestTable.category,
+                    creator: requestTable.creator,
+                    from: requestTable.from,
+                    to: requestTable.to,
+                    city: user.city,
+                    plz: user.plz
+                }
+            )
+                .from(requestTable)
+                .innerJoin(user, eq(user.id, requestTable.creator))
+                .where(
+                    and(
+                        like(user.plz, `${firstThreePlzDigits}%`),
+                        isNull(requestTable.accepted_by)
+                    )
+                );
+        } catch (err) {
+            logger.error(`Unable to get requests for plz=${plz}`)
+            return undefined;
         }
     }
 }

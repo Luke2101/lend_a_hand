@@ -13,7 +13,6 @@ let token: string[] = [];
 const validtestUser = getValidUniqueUser();
 
 beforeAll(async () => {
-    if(process.env.DATABASE_URL == undefined) throw new Error("Cant load ENV File")
     testUserId = await prepareUsers(validtestUser);
 
     // A valid token is needed

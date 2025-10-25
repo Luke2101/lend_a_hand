@@ -10,4 +10,4 @@ export const updateSchema = z.object({
     city: z.string().min(1),
 }).partial();
 
-export type UpdateBody = z.infer<typeof updateSchema>;
+export type UpdateUserBody = z.infer<typeof updateSchema>;
