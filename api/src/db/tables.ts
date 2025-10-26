@@ -1,4 +1,4 @@
-import {mysqlTable, varchar, int, text, datetime, boolean} from "drizzle-orm/mysql-core";
+import {mysqlTable, varchar, int, text, datetime, boolean, timestamp} from "drizzle-orm/mysql-core";
 
 
 
@@ -13,3 +13,10 @@ export const requestTable = mysqlTable("request", {
     from: datetime("from"),
     to: datetime("to"),
 });
+
+export const favouriteTable = mysqlTable("interested", {
+    id: int("id").primaryKey().autoincrement().notNull(),
+    userId: varchar("uId", {length: 36}).notNull(),
+    requestId: int("requestId").notNull(),
+    added_at: timestamp("added_at").defaultNow().notNull()
+})

@@ -40,16 +40,14 @@ describe("Tesing Request Cycle", () => {
 
         }
 
-        const result = await request(app).post("/request/create").set("Cookie", token).send(sampleRequest)
+        const result = await request(app).post("/request").set("Cookie", token).send(sampleRequest)
         expect(result.ok).toBeTruthy();
 
         requestId = result.body.id;
     })
 
     it("Check if request can be deleted", async () => {
-        const result = await request(app).delete("/request/remove").set("Cookie", token).send({
-            id: requestId
-        })
+        const result = await request(app).delete(`/request?id=${requestId}`).set("Cookie", token).send();
         expect(result.ok).toBeTruthy();
     })
 })

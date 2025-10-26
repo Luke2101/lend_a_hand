@@ -42,7 +42,7 @@ it("Try to change user info with valid parameters", async () => {
         prename: "test_prename_changed",
         surname: "test_surname_changed"
     }
-    const result = await request(app).patch("/user/update").set("Cookie", token).send(update)
+    const result = await request(app).patch("/user").set("Cookie", token).send(update)
     expect(result.ok).toBeTruthy();
 
     const updatedUser = await request(app).get("/user/info").set("Cookie", token)

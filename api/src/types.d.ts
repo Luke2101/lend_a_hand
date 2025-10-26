@@ -13,8 +13,6 @@ export type AuthenticatedRequest<
     session: any;     // optional, type as needed
 };
 
-
-
 export type SRequest = {
     id: number;
     title: string;
