@@ -1,11 +1,11 @@
-import {db} from "../../lib/auth.js";
-import {favouriteTable} from "../tables.js";
+import {db} from "../lib/auth.js";
+import {favouriteTable} from "../db/tables.js";
 import {and, eq} from "drizzle-orm";
-import logger from "../../util/logger.js";
+import logger from "../util/logger.js";
 
-class FavouriteOperations {
+class FavouriteRepository {
 
-    public static async getInterestsForUserById(uId: string) {
+    public async getInterestsForUserById(uId: string) {
         try {
             const result = await db.select({id: favouriteTable.requestId})
                 .from(favouriteTable)
@@ -18,7 +18,7 @@ class FavouriteOperations {
 
     }
 
-    public static async addRequestToInterests(reqId: number, uId: string) {
+    public async addRequestToInterests(reqId: number, uId: string) {
         try {
             const result = await db.insert(favouriteTable).values({
                 requestId: reqId,
@@ -31,7 +31,7 @@ class FavouriteOperations {
         }
     }
 
-    public static async removeInterestInRequestForUser(reqId: number, uId: string) {
+    public async removeInterestInRequestForUser(reqId: number, uId: string) {
         try {
             const result = await db
                 .delete(favouriteTable)
@@ -46,4 +46,4 @@ class FavouriteOperations {
 
 }
 
-export default FavouriteOperations;
+export default FavouriteRepository;

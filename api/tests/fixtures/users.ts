@@ -1,7 +1,6 @@
 import {randomUUID} from "node:crypto";
-
+import { faker } from "@faker-js/faker";
 export type TUser = {
-    name: string,
     prename: string,
     surname: string,
     email: string,
@@ -12,17 +11,17 @@ export type TUser = {
     plz: number
 }
 
-export function getValidUniqueUser(): TUser {
-    const uuid = randomUUID();
-   return {
-        name: "Test User",
-        prename: "Test",
-        surname: "User",
-        email: `testuser+${uuid}@example.com`, // unique per run
-        password: "StrongPassw0rd!2025", // safe, non-guessable
-        city: "Testville",
-        street: "Example Street",
-        houseNumber: "42A",
-        plz: 12345,
+
+
+export const getValidUniqueUser = () => {
+    return {
+        prename: faker.person.firstName(),
+        surname: faker.person.lastName(),
+        plz: faker.number.int({ min: 1000, max: 99999 }),
+        street: faker.location.street(),
+        houseNumber: faker.number.int({ min: 1, max: 100 }).toString(),
+        city: faker.location.city(),
+        email: faker.internet.email().toLowerCase(),
+        password: faker.internet.password({ length: 10 })
     };
-}
+};

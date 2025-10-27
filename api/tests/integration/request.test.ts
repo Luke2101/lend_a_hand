@@ -1,31 +1,26 @@
 import {app} from "../../src/api.js";
-import {deleteUsers, prepareUsers} from "../util/dbUtil.js";
 import request from "supertest";
 
 import {fromNodeHeaders} from "better-auth/node";
 import {afterAll} from "vitest";
 import {getValidUniqueUser} from "../fixtures/users.js";
+import AdminTools from "../util/AdminTools.js";
+import {StatusCodes} from "http-status-codes";
 
 
-let testUserId: string[] = [];
 let token: string[] = [];
 
 const validtestUser = getValidUniqueUser();
 
 beforeAll(async () => {
-    testUserId = await prepareUsers(validtestUser);
+    await AdminTools.createUser(validtestUser);
 
     // A valid token is needed
-    const res = await request(app).post("/auth/login").send({
-        email: validtestUser.email,
-        password: validtestUser.password
-    })
-    const headers = fromNodeHeaders(res.headers);
-    token = headers.getSetCookie();
+    token = await AdminTools.loginAndRetrieveSession(validtestUser);
 })
 
 afterAll(async () => {
-    await deleteUsers(...testUserId)
+    await AdminTools.deleteUserByMail(validtestUser.email)
 })
 describe("Tesing Request Cycle", () => {
     let requestId: number | undefined;
@@ -41,13 +36,13 @@ describe("Tesing Request Cycle", () => {
         }
 
         const result = await request(app).post("/request").set("Cookie", token).send(sampleRequest)
-        expect(result.ok).toBeTruthy();
+        expect(result.status).toBe(StatusCodes.CREATED);
 
         requestId = result.body.id;
     })
 
     it("Check if request can be deleted", async () => {
         const result = await request(app).delete(`/request?id=${requestId}`).set("Cookie", token).send();
-        expect(result.ok).toBeTruthy();
+        expect(result.status).toBe(StatusCodes.OK);
     })
 })

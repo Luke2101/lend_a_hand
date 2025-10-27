@@ -9,7 +9,9 @@ import DatabaseError from "../errors/DatabaseError.js";
 if(process.env.DB_USER == undefined) throw new DatabaseError("Missing database user in config");
 if(process.env.DB_NAME == undefined) throw new DatabaseError("Missing database name in config");
 if(process.env.DB_HOST == undefined) throw new DatabaseError("Missing database host in config");
-export const db = drizzle(`mysql://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}/${process.env.DB_NAME}`)
+if(process.env.DB_PORT == undefined) throw new DatabaseError("Missing database port in config");
+
+export const db = drizzle(`mysql://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`)
 
 export const auth = betterAuth({
     database: drizzleAdapter(db, {

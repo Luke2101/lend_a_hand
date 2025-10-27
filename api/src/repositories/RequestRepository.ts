@@ -1,15 +1,15 @@
-import type {CreateRequestBody} from "../../schemas/requestSchemas.js";
-import {db} from "../../lib/auth.js";
-import {requestTable} from "../tables.js";
-import logger from "../../util/logger.js";
+import type {CreateRequestBody} from "../schemas/requestSchemas.js";
+import {db} from "../lib/auth.js";
+import {requestTable} from "../db/tables.js";
+import logger from "../util/logger.js";
 import type {User} from "better-auth";
 import {and, eq, isNull, like} from "drizzle-orm";
-import type {SRequest} from "../../types.js";
-import {user} from "../auth-schema.js";
+import type {SRequest} from "../types.js";
+import {user} from "../db/auth-schema.js";
 
 
-class RequestOperations {
-    public static async createRequest(reqData: CreateRequestBody, creator: string){
+class RequestRepository {
+    public async createRequest(reqData: CreateRequestBody, creator: string){
         try {
             const result = await db.insert(requestTable).values({
                 ...reqData,
@@ -28,7 +28,7 @@ class RequestOperations {
 
     }
 
-    public static async getAllUserRequests(userId: string) {
+    public async getAllUserRequests(userId: string) {
         try {
             return await db.select().from(requestTable).where(eq(requestTable.creator, userId))
         }catch (err) {
@@ -36,7 +36,7 @@ class RequestOperations {
         }
     }
 
-    public static async deleteRequest(reqId: number) {
+    public async deleteRequest(reqId: number) {
         try {
             await db.delete(requestTable).where(eq(requestTable.id, reqId))
             return true;
@@ -46,7 +46,7 @@ class RequestOperations {
         }
     }
 
-    public static async updateRequest(reqData: SRequest) {
+    public async updateRequest(reqData: SRequest) {
         try {
             const result = await db.update(requestTable).set({
                 title: reqData.title,
@@ -64,7 +64,7 @@ class RequestOperations {
         }
     }
 
-    public static async getRequestById(reqId: number) {
+    public async getRequestById(reqId: number) {
         try {
             const result = await db.select().from(requestTable).where(eq(requestTable.id, reqId));
 
@@ -80,7 +80,7 @@ class RequestOperations {
         }
     }
 
-    public static async acceptRequest(reqId: number, userId: any) {
+    public async acceptRequest(reqId: number, userId: any) {
         try {
             const result = await db.update(requestTable).set({
                 accepted_by: userId
@@ -93,7 +93,7 @@ class RequestOperations {
         }
     }
 
-    public static async getOpenRequestsNearbyForPlz(plz: number) {
+    public async getOpenRequestsNearbyForPlz(plz: number) {
         try {
             const firstThreePlzDigits = plz.toString().slice(0,3)
             return await db.select(
@@ -125,4 +125,4 @@ class RequestOperations {
     }
 }
 
-export default RequestOperations;
+export default RequestRepository;

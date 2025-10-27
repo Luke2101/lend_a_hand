@@ -1,29 +1,39 @@
-import FavouriteOperations from "../db/operations/favouriteOperations.js";
+import FavouriteRepository from "../repositories/FavouriteRepository.js";
 import {StatusCodes} from "http-status-codes";
 import RequestService from "./RequestService.js";
+import Service from "./Service.js";
 
-class FavouriteService {
-    public static async getInterestsForUser(userId: string) {
-        const result = await FavouriteOperations.getInterestsForUserById(userId);
+class FavouriteService extends Service<FavouriteRepository>{
+
+    private readonly requestService: RequestService
+
+    constructor() {
+        super(new FavouriteRepository())
+        this.requestService = new RequestService();
+    }
+
+
+    public async getInterestsForUser(userId: string) {
+        const result = await this.repository().getInterestsForUserById(userId);
         if(result === undefined) return StatusCodes.INTERNAL_SERVER_ERROR;
         return result;
     }
 
-    public static async addInterest(userId: string, requestId: number) {
-        const request = await RequestService.getRequest(requestId)
+    public async addInterest(userId: string, requestId: number) {
+        const request = await this.requestService.getRequest(requestId)
         if(request == StatusCodes.NOT_FOUND) return request;
         if(request == StatusCodes.INTERNAL_SERVER_ERROR) return request;
-        const currentUserInterests = await FavouriteOperations.getInterestsForUserById(userId);
+        const currentUserInterests = await this.repository().getInterestsForUserById(userId);
         if(currentUserInterests === undefined) return StatusCodes.INTERNAL_SERVER_ERROR;
         if(currentUserInterests.includes(Number(requestId))) return StatusCodes.CONFLICT;
-        const addResult = await FavouriteOperations.addRequestToInterests(requestId, userId);
+        const addResult = await this.repository().addRequestToInterests(requestId, userId);
         if(!addResult) return StatusCodes.INTERNAL_SERVER_ERROR;
         return StatusCodes.CREATED;
 
     }
 
-    public static async removeInterest(userId: string, requestId: number) {
-        const result = await FavouriteOperations.removeInterestInRequestForUser(requestId, userId) ;
+    public async removeInterest(userId: string, requestId: number) {
+        const result = await this.repository().removeInterestInRequestForUser(requestId, userId) ;
         if(!result) return StatusCodes.CONFLICT;
         return StatusCodes.NO_CONTENT;
     }

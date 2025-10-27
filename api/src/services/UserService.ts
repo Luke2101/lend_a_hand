@@ -1,29 +1,65 @@
-import type {Request, Response} from "express";
-import {StatusCodes} from "http-status-codes";
-import {auth, db} from "../lib/auth.js";
-import {fromNodeHeaders} from "better-auth/node";
-import type {UpdateUserBody} from "../schemas/userSchemas.js";
-import {type Session} from "better-auth";
-import {eq} from "drizzle-orm";
-import {user} from "../db/auth-schema.js";
-import logger from "../util/logger.js";
-import UserOperations from "../db/operations/userOperations.js";
+import type { Request } from "express";
+import { StatusCodes } from "http-status-codes";
+import { auth } from "../lib/auth.js";
+import { fromNodeHeaders } from "better-auth/node";
+import type { UpdateUserBody } from "../schemas/userSchemas.js";
+import { type Session } from "better-auth";
+import UserRepository from "../repositories/UserRepository.js";
+import Service from "./Service.js";
 
+/**
+ * @class UserService
+ * @classdesc Service layer handling business logic for user operations
+ * @extends Service<UserRepository>
+ *
+ * @description
+ * Manages user authentication, profile updates, and session management
+ * using Better Auth for authentication flows.
+ */
+class UserSerivce extends Service<UserRepository>{
+    /**
+     * Creates a new user service instance
+     */
+    constructor() {
+        super(new UserRepository())
+    }
 
-class UserSerivce {
-
-    public static async logout(req: Request,) {
+    /**
+     * Handles user logout process
+     * @param {Request} req - Express request object containing headers
+     * @returns {Promise<Headers>} Response headers for clearing authentication
+     *
+     * @remarks
+     * Uses Better Auth API to invalidate session and clear cookies
+     *
+     * @example
+     * const headers = await userService.logout(req);
+     * res.setHeaders(headers);
+     */
+    public async logout(req: Request,): Promise<Headers> {
         const headers = fromNodeHeaders(req.headers);
         const response = await auth.api.signOut({headers, asResponse: true})
         return response.headers;
-
     }
 
-    public static async updateProfile(session: Session, requestBody: UpdateUserBody) {
+    /**
+     * Updates user profile information
+     * @param {Session} session - User session object
+     * @param {UpdateUserBody} requestBody - Data to update user profile
+     * @returns {Promise<StatusCodes>} Status code indicating result of operation
+     *
+     * @throws {400} BAD_REQUEST - When request body is empty
+     * @throws {500} INTERNAL_SERVER_ERROR - When update fails due to database error
+     *
+     * @example
+     * await updateProfile(session, { prename: "John", city: "Hamburg" });
+     */
+    public async updateProfile(session: Session, requestBody: UpdateUserBody): Promise<StatusCodes> {
         if(Object.keys(requestBody).length == 0) return StatusCodes.BAD_REQUEST;
-        const result = await UserOperations.updateUser(requestBody,session.userId);
+        const result = await this.repository().updateUser(requestBody,session.userId);
         if(!result) return StatusCodes.INTERNAL_SERVER_ERROR;
         return StatusCodes.OK;
     }
 }
+
 export default UserSerivce;
