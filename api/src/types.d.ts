@@ -22,6 +22,7 @@ export type SRequest = {
     from?: string;
     to?: string;
 }
+type InsertRequest = typeof requestTable.$inferInsert;
 
 export type CUser = InferInsertModel<typeof user>;
 export type CRequest = InferSelectModel<typeof requestTable>;

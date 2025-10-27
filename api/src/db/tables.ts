@@ -20,3 +20,9 @@ export const favouriteTable = mysqlTable("interested", {
     requestId: int("requestId").notNull(),
     added_at: timestamp("added_at").defaultNow().notNull()
 })
+
+export const transactionsTable = mysqlTable("transactions", {
+    id: int("id").primaryKey().autoincrement().notNull(),
+    from_account: varchar("from_account", {length: 36}).notNull(),
+    to_account: varchar("from_account", {length: 36}).notNull(),
+})

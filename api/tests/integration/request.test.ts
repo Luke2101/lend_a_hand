@@ -14,14 +14,9 @@ const validtestUser = getValidUniqueUser();
 
 beforeAll(async () => {
     await AdminTools.createUser(validtestUser);
-
-    // A valid token is needed
     token = await AdminTools.loginAndRetrieveSession(validtestUser);
 })
 
-afterAll(async () => {
-    await AdminTools.deleteUserByMail(validtestUser.email)
-})
 describe("Tesing Request Cycle", () => {
     let requestId: number | undefined;
     it("Create a new request within limit", async () => {
@@ -45,4 +40,8 @@ describe("Tesing Request Cycle", () => {
         const result = await request(app).delete(`/request?id=${requestId}`).set("Cookie", token).send();
         expect(result.status).toBe(StatusCodes.OK);
     })
+})
+
+afterAll(async () => {
+    await AdminTools.deleteUserByMail(validtestUser.email)
 })

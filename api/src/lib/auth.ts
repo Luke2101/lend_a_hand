@@ -43,6 +43,7 @@ export const auth = betterAuth({
             street: { type: "string" , required: true },
             houseNumber: { type: "string" , required: true },
             city: { type: "string" , required: true },
+            balance: {type: "number", required: true, defaultValue: 0}
         }
     },
     plugins: []

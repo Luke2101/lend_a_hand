@@ -68,7 +68,7 @@ class RequestService extends Service<RequestRepository>{
             from: requestBody.from,
             to: requestBody.to,
             description: requestBody.description
-        } as SRequest
+        }
         const didRequestUpdate = await this.repository().updateRequest(request)
         if(!didRequestUpdate) return StatusCodes.INTERNAL_SERVER_ERROR;
         return StatusCodes.OK;

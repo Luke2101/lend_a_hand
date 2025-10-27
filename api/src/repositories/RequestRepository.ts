@@ -107,7 +107,8 @@ class RequestRepository {
                     from: requestTable.from,
                     to: requestTable.to,
                     city: user.city,
-                    plz: user.plz
+                    plz: user.plz,
+                    prename: user.prename
                 }
             )
                 .from(requestTable)

@@ -6,6 +6,8 @@ import {user} from "../../src/db/auth-schema.js";
 import {eq} from "drizzle-orm";
 import type {TUser} from "../fixtures/users.js";
 import {fromNodeHeaders} from "better-auth/node";
+import {requestTable} from "../../src/db/tables.js";
+import type {InsertRequest, SRequest} from "../../src/types.js";
 
 class AdminTools {
     public static async createUser(userData: SignUpBody) {
@@ -24,6 +26,10 @@ class AdminTools {
         });
         const headers = fromNodeHeaders(res.headers);
         return headers.getSetCookie();
+    }
+
+    public static async createRequest(request: InsertRequest) {
+        const result = await db.insert(requestTable).values(request)
     }
 
 }
