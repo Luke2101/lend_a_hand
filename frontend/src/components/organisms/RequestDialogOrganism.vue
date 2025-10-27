@@ -33,6 +33,8 @@ interface FormValues {
   endDate: Date | null;
 }
 
+const emit = defineEmits(['update:visible']);
+
 const categories = ref<Category[]>([
   { name: 'Ausleihen', code: 'rent' },
   { name: 'Hilfe', code: 'help' },
@@ -127,7 +129,7 @@ const onSubmit = async (event: FormSubmitEvent<FormValues>) => {
   };
 
   try {
-    const response = await fetch('http://localhost:8080/request/create', {
+    const response = await fetch('http://localhost:8080/request', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(payload),
@@ -138,7 +140,7 @@ const onSubmit = async (event: FormSubmitEvent<FormValues>) => {
 
     if (response.ok) {
       toast.add({severity: 'success', summary: 'Erfolg', detail: data.message || 'Anfrage erfolgreich erstellt.', life: 3000});
-      // TODO: Dialog schließen oder Zustand zurücksetzen
+      emit('update:visible', false);
       console.log('API-Antwort (201):', data);
     } else if (response.status === 403) {
       toast.add({
