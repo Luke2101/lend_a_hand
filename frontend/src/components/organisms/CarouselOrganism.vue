@@ -46,6 +46,9 @@ const AUTOPLAY_INTERVAL = props.ownRequests ? 0 : 3000;
 const requests = ref<Request[]>([]);
 const requestsLoading = ref(true);
 
+const favoriteIds = ref<number[]>([]);
+const favouritesLoading = ref(false);
+
 const fetchRequests = async () => {
   requestsLoading.value = true;
   const endpoint = props.ownRequests
@@ -78,13 +81,77 @@ const fetchRequests = async () => {
   }
 };
 
-onMounted(fetchRequests);
-watch(() => props.ownRequests, fetchRequests);
+const fetchFavorites = async () => {
+  favouritesLoading.value = true;
+  try {
+    const response = await fetch('http://localhost:8080/favourites', { // GET /favourites
+      method: 'GET',
+      credentials: 'include',
+    });
 
-const toggleFavorite = (event: MouseEvent) => {
-  // TODO api request
-  toast.add({ severity: 'success', summary: 'Favorit', detail: 'Status simuliert umgeschaltet.', life: 3000 });
-}
+    if (response.ok) {
+      const data = await response.json();
+      // Die API gibt direkt ein Array von IDs zurück
+      favoriteIds.value = Array.isArray(data) ? data : [];
+    } else {
+      console.error('Fehler beim Laden der Favoriten-IDs');
+      favoriteIds.value = [];
+    }
+  } catch (error) {
+    console.error('Netzwerkfehler beim Laden der Favoriten-IDs:', error);
+    favoriteIds.value = [];
+  } finally {
+    favouritesLoading.value = false;
+  }
+};
+
+const loadData = async () => {
+  await fetchRequests();
+  if (!props.ownRequests) {
+    await fetchFavorites();
+  }
+};
+
+onMounted(loadData);
+watch(() => props.ownRequests, loadData);
+
+const isFavorite = (requestId: number): boolean => {
+  return favoriteIds.value.includes(requestId);
+};
+
+const toggleFavorite = async (requestId: number) => {
+  const isCurrentlyFavorite = isFavorite(requestId);
+  const method = isCurrentlyFavorite ? 'DELETE' : 'POST';
+
+  if (isCurrentlyFavorite) {
+    favoriteIds.value = favoriteIds.value.filter(id => id !== requestId);
+  } else {
+    favoriteIds.value.push(requestId);
+  }
+
+  try {
+    const response = await fetch(`http://localhost:8080/favourites?id=${requestId}`, {
+      method: method,
+      credentials: 'include'
+    });
+
+    if (response.ok || response.status === 201) {
+      console.log(`Favorite ${isCurrentlyFavorite ? 'removed' : 'added'}: ID ${requestId}`);
+    } else if (response.status === 409 && !isCurrentlyFavorite) { // ALREADY_IN_FAVOURITES (POST)
+      console.error('Request was already in favorites');
+      if (!favoriteIds.value.includes(requestId)) {
+        favoriteIds.value.push(requestId);
+      }
+    } else {
+      const data = await response.json().catch(() => ({ message: 'Unknown error' }));
+      console.error(`Error during ${method} favorite status for ID ${requestId}. Status: ${response.status}. Message: ${data.message}`);
+      await fetchFavorites();
+    }
+  } catch (error) {
+    console.error('Network error when toggling favorites:', error);
+    await fetchFavorites();
+  }
+};
 
 const confirmDelete = (event: MouseEvent, requestId: number) => {
   confirm.require({
@@ -173,7 +240,7 @@ const responsiveOptions: ResponsiveOption[] = [
     <div v-else-if="requests.length > 0">
       <Carousel :value="requests" :numVisible="3" :numScroll="1" :responsiveOptions="responsiveOptions" circular :autoplay-interval="AUTOPLAY_INTERVAL">
         <template #item="slotProps">
-          <div class="border border-surface-200 dark:border-surface-700 rounded m-2 p-4 min-h-[26rem] max-w-[22rem] flex flex-col justify-between">
+          <div class="border border-surface-200 dark:border-surface-700 rounded m-2 p-4 min-h-[26rem] flex flex-col justify-between">
             <div class="mb-4">
               <div class="relative mx-auto">
                 <img :src="images[slotProps.data.category]" :alt="slotProps.data.category" class="w-full h-48 rounded object-cover"/>
@@ -185,17 +252,38 @@ const responsiveOptions: ResponsiveOption[] = [
             <div v-if="slotProps.data.from && slotProps.data.to" class="text-sm text-surface-500 dark:text-surface-400 mb-2">
               {{ formatDate(slotProps.data.from) }} – {{ formatDate(slotProps.data.to) }}
             </div>
-            <p class="text-sm text-surface-600 dark:text-surface-300 line-clamp-2 mb-4 break-words">{{ slotProps.data.description || 'Keine Beschreibung vorhanden.' }}</p>
+            <p class="text-sm text-surface-600 dark:text-surface-300 max-w-[22rem] line-clamp-2 mb-4 break-words">{{ slotProps.data.description || 'Keine Beschreibung vorhanden.' }}</p>
 
             <div class="flex justify-between items-center mt-auto">
               <div class="mt-0 font-semibold text-xl flex items-center">
                 <i class="pi pi-crown mr-2 text-primary"></i> {{ slotProps.data.credits }}
               </div>
               <span>
-                  <Button v-if="props.ownRequests" icon="pi pi-trash" severity="danger" variant="outlined" @click="confirmDelete($event, slotProps.data.id)"/>
-                  <Button v-else icon="pi pi-heart" severity="secondary" variant="outlined" @click="toggleFavorite($event)"/>
-                  <Button v-if="props.ownRequests" icon="pi pi-pen-to-square" class="ml-2"/>
-                  <Button v-else icon="pi pi-arrow-up-right-and-arrow-down-left-from-center" class="ml-2"/>
+                  <Button
+                      v-if="props.ownRequests"
+                      icon="pi pi-trash"
+                      severity="danger"
+                      variant="outlined"
+                      @click="confirmDelete($event, slotProps.data.id)"
+                  />
+                  <Button
+                      v-else
+                      :icon="isFavorite(slotProps.data.id) ? 'pi pi-heart-fill' : 'pi pi-heart'"
+                      :severity="isFavorite(slotProps.data.id) ? 'danger' : 'secondary'"
+                      variant="outlined"
+                      @click="toggleFavorite(slotProps.data.id)"
+                  />
+                  <Button
+                      v-if="props.ownRequests"
+                      icon="pi pi-pen-to-square"
+                      class="ml-2"
+                  />
+                  <!-- TODO add accept btn -->
+                  <Button
+                      v-else
+                      icon="pi pi-arrow-up-right-and-arrow-down-left-from-center"
+                      class="ml-2"
+                  />
                 </span>
             </div>
           </div>
