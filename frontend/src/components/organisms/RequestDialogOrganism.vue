@@ -105,7 +105,8 @@ const resolver = zodResolver(formSchema as ZodType<FormValues>);
 
 const toast = useToast();
 
-const toIsoString = (date: Date): string => {
+const toIsoString = (date: Date | null | undefined): string | null => {
+  if (!date) return null;
   return date.toISOString().replace(/\.\d{3}Z$/, 'Z');
 };
 
@@ -114,7 +115,7 @@ const onSubmit = async (event: FormSubmitEvent<FormValues>) => {
   console.log('Formular erfolgreich übermittelt. Daten:');
   console.log(values);
 
-  if (!values.startDate || !values.endDate || !values.category) {
+  if (!values.title || !values.category) {
     toast.add({ severity: 'error', summary: 'Fehler', detail: 'Formulardaten unvollständig.', life: 3000 });
     return;
   }
@@ -172,7 +173,7 @@ const onSubmit = async (event: FormSubmitEvent<FormValues>) => {
 </script>
 
 <template>
-  <Dialog modal header="Anfrage erstellen" :style="{ width: '36rem' }">
+  <Dialog modal header="Anfrage erstellen" :style="{ width: '36rem' }" @update:visible="(value) => emit('update:visible', value)">
     <span class="text-surface-500 dark:text-surface-400 block mb-8">Erstelle eine neue Anfrage.</span>
     <Form
         v-slot="form"
@@ -180,7 +181,7 @@ const onSubmit = async (event: FormSubmitEvent<FormValues>) => {
         :resolver="resolver"
         @submit="onSubmit"
         :validateOnValueUpdate="false"
-        :validateOnBlur="true"
+        :validateOnSubmit="true"
     >
       <InputTextMolecule :form="form" name="title" label="Titel" type="text" class="flex-1 mb-4" autofocus/>
 
@@ -197,7 +198,7 @@ const onSubmit = async (event: FormSubmitEvent<FormValues>) => {
           <FloatLabel variant="on" class="flex-1">
             <IconField iconPosition="left">
               <InputIcon>
-                <i class="pi pi-dollar" />
+                <i class="pi pi-crown"/>
               </InputIcon>
               <InputNumber
                   :form="form"
@@ -289,8 +290,8 @@ const onSubmit = async (event: FormSubmitEvent<FormValues>) => {
       </FloatLabel>
 
       <div class="flex justify-end gap-2">
-        <Button type="button" label="Abbrechen" severity="secondary"/>
-        <Button type="submit" label="Anfrage erstellen" />
+        <Button type="button" label="Abbrechen" severity="secondary" @click="emit('update:visible', false);"/>
+        <Button type="submit" label="Anfrage erstellen"/>
       </div>
     </Form>
   </Dialog>

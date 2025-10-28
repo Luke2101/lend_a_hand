@@ -21,6 +21,8 @@ interface Request {
   description: string | null;
   image?: string;
   status: 'pending' | 'accepted' | 'closed';
+  from?: string;
+  to?: string;
 }
 
 interface ResponsiveOption {
@@ -121,6 +123,12 @@ const confirmDelete = (event: MouseEvent, requestId: number) => {
   });
 };
 
+const formatDate = (iso: string | undefined) => {
+  if (!iso) return '-';
+  const d = new Date(iso);
+  return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+};
+
 const getSeverity = (category: string): 'info' | 'success' | 'warn' | null => {
   switch (category) {
     case 'rent':
@@ -165,18 +173,21 @@ const responsiveOptions: ResponsiveOption[] = [
     <div v-else-if="requests.length > 0">
       <Carousel :value="requests" :numVisible="3" :numScroll="1" :responsiveOptions="responsiveOptions" circular :autoplay-interval="AUTOPLAY_INTERVAL">
         <template #item="slotProps">
-          <div class="border border-surface-200 dark:border-surface-700 rounded m-2  p-4">
+          <div class="border border-surface-200 dark:border-surface-700 rounded m-2 p-4 min-h-[26rem] max-w-[22rem] flex flex-col justify-between">
             <div class="mb-4">
               <div class="relative mx-auto">
-                <img :src="images[slotProps.data.category]" :alt="slotProps.data.category" class="w-full rounded" />
+                <img :src="images[slotProps.data.category]" :alt="slotProps.data.category" class="w-full h-48 rounded object-cover"/>
                 <Tag :value="getCategoryName(slotProps.data.category)" :severity="getSeverity(slotProps.data.category)" class="absolute" style="left:5px; top: 5px"/>
               </div>
             </div>
 
             <div class="mb-2 font-bold">{{ slotProps.data.title }}</div>
-            <p class="text-sm text-surface-600 dark:text-surface-300 line-clamp-2 mb-4">{{ slotProps.data.description || 'Keine Beschreibung vorhanden.' }}</p>
+            <div v-if="slotProps.data.from && slotProps.data.to" class="text-sm text-surface-500 dark:text-surface-400 mb-2">
+              {{ formatDate(slotProps.data.from) }} – {{ formatDate(slotProps.data.to) }}
+            </div>
+            <p class="text-sm text-surface-600 dark:text-surface-300 line-clamp-2 mb-4 break-words">{{ slotProps.data.description || 'Keine Beschreibung vorhanden.' }}</p>
 
-            <div class="flex justify-between items-center">
+            <div class="flex justify-between items-center mt-auto">
               <div class="mt-0 font-semibold text-xl flex items-center">
                 <i class="pi pi-crown mr-2 text-primary"></i> {{ slotProps.data.credits }}
               </div>
