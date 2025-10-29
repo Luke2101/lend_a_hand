@@ -59,8 +59,8 @@ const formSchema = z.object({
     message: 'Bitte wähle eine Kategorie.'
   }),
   credits: z.number({
-    message: 'Belohnungspunkte werden benötigt.'
-  }).min(1, {message: 'Die Belohnung muss mindestens 1 Punkt betragen.' }),
+    message: 'Muss eine Zahl sein.'
+  }).nullable().optional(),
   startDate: z.date({
     message: 'Ungültiges Startdatum.',
   }).nullable(),
@@ -70,30 +70,45 @@ const formSchema = z.object({
   description: z.string().optional(),
 })
     .superRefine((data, ctx) => {
-  const startDate = data.startDate;
-  const endDate = data.endDate;
+      const startDate = data.startDate;
+      const endDate = data.endDate;
 
-      // Prüfen, ob die Kategorie 'rent' (Ausleihen) oder 'help' (Hilfe) ist.
-      const isDateRequired = data.category && (data.category.code === 'rent' || data.category.code === 'help');
+      const isGiveaway = data.category?.code === 'giveaway';
 
-      if (isDateRequired) {
+      if (!isGiveaway) {
+        if (data.credits === null || data.credits === undefined) {
+          ctx.addIssue({
+            code: "custom",
+            message: 'Belohnungspunkte (mindestens 1) sind bei dieser Kategorie erforderlich.',
+            path: ['credits'],
+          });
+        } else if (data.credits < 1) {
+          ctx.addIssue({
+            code: "custom",
+            message: 'Die Belohnung muss mindestens 1 Punkt betragen.',
+            path: ['credits'],
+          });
+        }
+      }
+
+      if (!isGiveaway) {
         if (!startDate) {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: "custom",
             message: 'Ein Startdatum ist bei dieser Kategorie zwingend erforderlich.',
             path: ['startDate'],
           });
         }
         if (!endDate) {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: "custom",
             message: 'Ein Enddatum ist bei dieser Kategorie zwingend erforderlich.',
             path: ['endDate'],
           });
         }
         if (startDate && endDate && endDate < startDate) {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: "custom",
             message: 'Das Enddatum darf nicht vor dem Startdatum liegen.',
             path: ['endDate'],
           });
@@ -206,8 +221,10 @@ const onSubmit = async (event: FormSubmitEvent<FormValues>) => {
                   inputId="credits"
                   showButtons
                   :min="1"
-                  :max="20"
+                  :max="100"
                   fluid
+                  :modelValue="form.category?.value?.code === 'giveaway' ? null : form.credits?.value"
+                  :disabled="form.category?.value?.code === 'giveaway'"
               />
               <label for="credits">Belohnungspunkte</label>
             </IconField>
@@ -223,7 +240,7 @@ const onSubmit = async (event: FormSubmitEvent<FormValues>) => {
         </div>
       </div>
 
-      <div v-if="form.category?.value?.code === 'rent' || form.category?.value?.code === 'help'" class="flex items-center gap-4 mb-4">
+      <div class="flex items-center gap-4 mb-4">
         <div>
           <FloatLabel variant="on" class="flex-1">
             <DatePicker
@@ -237,6 +254,8 @@ const onSubmit = async (event: FormSubmitEvent<FormValues>) => {
                 showTime
                 hourFormat="24"
                 fluid
+                :modelValue="form.category?.value?.code === 'giveaway' ? null : form.startDate?.value"
+                :disabled="form.category?.value?.code === 'giveaway'"
             />
             <label for="startDate">Startdatum</label>
           </FloatLabel>
@@ -264,6 +283,8 @@ const onSubmit = async (event: FormSubmitEvent<FormValues>) => {
                 showTime
                 hourFormat="24"
                 fluid
+                :modelValue="form.category?.value?.code === 'giveaway' ? null : form.endDate?.value"
+                :disabled="form.category?.value?.code === 'giveaway'"
             />
             <label for="endDate">Enddatum</label>
           </FloatLabel>

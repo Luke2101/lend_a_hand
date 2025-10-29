@@ -4,26 +4,11 @@ import {useConfirm} from "primevue";
 import { useToast } from "primevue/usetoast";
 
 import Carousel from 'primevue/carousel';
-import Tag from 'primevue/tag';
-import Button from 'primevue/button';
 import ConfirmPopup from 'primevue/confirmpopup';
 import ProgressSpinner from 'primevue/progressspinner';
 
-import rent from '@/assets/rent.jpeg';
-import help from '@/assets/help.jpg';
-import giveaway from '@/assets/giveaway.jpeg';
-
-interface Request {
-  id: number;
-  title: string;
-  category: string;
-  credits: number;
-  description: string | null;
-  image?: string;
-  status: 'pending' | 'accepted' | 'closed';
-  from?: string;
-  to?: string;
-}
+import type { Request } from '@/types/Request.interface';
+import RequestCardMolecule from '@/components/molecules/RequestCardMolecule.vue';
 
 interface ResponsiveOption {
   breakpoint: string;
@@ -37,11 +22,10 @@ const props = withDefaults(defineProps<{
   ownRequests: false
 });
 
-const images = { rent, help, giveaway }
 const confirm = useConfirm();
 const toast = useToast();
 
-const AUTOPLAY_INTERVAL = props.ownRequests ? 0 : 3000;
+const AUTOPLAY_INTERVAL = props.ownRequests ? 0 : 5000;
 
 const requests = ref<Request[]>([]);
 const requestsLoading = ref(true);
@@ -216,7 +200,7 @@ const getCategoryName = (category: string) => {
     case 'help':
       return 'Hilfe';
     case 'giveaway':
-      return 'zu verschencken';
+      return 'zu verschenken';
     default:
       return null;
   }
@@ -240,53 +224,16 @@ const responsiveOptions: ResponsiveOption[] = [
     <div v-else-if="requests.length > 0">
       <Carousel :value="requests" :numVisible="3" :numScroll="1" :responsiveOptions="responsiveOptions" circular :autoplay-interval="AUTOPLAY_INTERVAL">
         <template #item="slotProps">
-          <div class="border border-surface-200 dark:border-surface-700 rounded m-2 p-4 min-h-[26rem] flex flex-col justify-between">
-            <div class="mb-4">
-              <div class="relative mx-auto">
-                <img :src="images[slotProps.data.category]" :alt="slotProps.data.category" class="w-full h-48 rounded object-cover"/>
-                <Tag :value="getCategoryName(slotProps.data.category)" :severity="getSeverity(slotProps.data.category)" class="absolute" style="left:5px; top: 5px"/>
-              </div>
-            </div>
-
-            <div class="mb-2 font-bold">{{ slotProps.data.title }}</div>
-            <div v-if="slotProps.data.from && slotProps.data.to" class="text-sm text-surface-500 dark:text-surface-400 mb-2">
-              {{ formatDate(slotProps.data.from) }} – {{ formatDate(slotProps.data.to) }}
-            </div>
-            <p class="text-sm text-surface-600 dark:text-surface-300 max-w-[22rem] line-clamp-2 mb-4 break-words">{{ slotProps.data.description || 'Keine Beschreibung vorhanden.' }}</p>
-
-            <div class="flex justify-between items-center mt-auto">
-              <div class="mt-0 font-semibold text-xl flex items-center">
-                <i class="pi pi-crown mr-2 text-primary"></i> {{ slotProps.data.credits }}
-              </div>
-              <span>
-                  <Button
-                      v-if="props.ownRequests"
-                      icon="pi pi-trash"
-                      severity="danger"
-                      variant="outlined"
-                      @click="confirmDelete($event, slotProps.data.id)"
-                  />
-                  <Button
-                      v-else
-                      :icon="isFavorite(slotProps.data.id) ? 'pi pi-heart-fill' : 'pi pi-heart'"
-                      :severity="isFavorite(slotProps.data.id) ? 'danger' : 'secondary'"
-                      variant="outlined"
-                      @click="toggleFavorite(slotProps.data.id)"
-                  />
-                  <Button
-                      v-if="props.ownRequests"
-                      icon="pi pi-pen-to-square"
-                      class="ml-2"
-                  />
-                  <!-- TODO add accept btn -->
-                  <Button
-                      v-else
-                      icon="pi pi-arrow-up-right-and-arrow-down-left-from-center"
-                      class="ml-2"
-                  />
-                </span>
-            </div>
-          </div>
+          <RequestCardMolecule
+              :request="slotProps.data"
+              :own-requests="props.ownRequests"
+              :format-date="formatDate"
+              :get-severity="getSeverity"
+              :get-category-name="getCategoryName"
+              :is-favorite="isFavorite"
+              :toggle-favorite="toggleFavorite"
+              :confirm-delete="confirmDelete"
+          />
         </template>
       </Carousel>
     </div>

@@ -15,6 +15,7 @@ import {ToastService} from "primevue";
 import {definePreset} from "@primeuix/themes";
 import FocusTrap from 'primevue/focustrap';
 import ConfirmationService from 'primevue/confirmationservice';
+import Tooltip from 'primevue/tooltip';
 
 const app = createApp(App)
 const pinia = createPinia();
@@ -87,6 +88,8 @@ app.directive('focustrap', FocusTrap);
 app.directive('ripple', Ripple);
 
 app.directive('animateonscroll', AnimateOnScroll);
+
+app.directive('tooltip', Tooltip);
 
 app.mount('#app')
 
