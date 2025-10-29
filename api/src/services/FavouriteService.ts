@@ -23,6 +23,7 @@ class FavouriteService extends Service<FavouriteRepository>{
         const request = await this.requestService.getRequest(requestId)
         if(request == StatusCodes.NOT_FOUND) return request;
         if(request == StatusCodes.INTERNAL_SERVER_ERROR) return request;
+        if(request.creator == userId) return StatusCodes.FORBIDDEN;
         const currentUserInterests = await this.repository().getInterestsForUserById(userId);
         if(currentUserInterests === undefined) return StatusCodes.INTERNAL_SERVER_ERROR;
         if(currentUserInterests.includes(Number(requestId))) return StatusCodes.CONFLICT;

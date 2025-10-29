@@ -5,35 +5,42 @@ import {getValidUniqueUser} from "../fixtures/users.js";
 import {StatusCodes} from "http-status-codes";
 import AdminTools from "../util/AdminTools.js";
 import TestingError from "../../src/errors/TestingError.js";
+import RequestCategory from "../../src/util/RequestCategory.js";
+import {req} from "pino-std-serializers";
 
 let token: string[] = [];
 let testRequestId: number;
 
 const validtestUser = getValidUniqueUser();
-
+const requestIssuerUser = getValidUniqueUser();
 beforeAll(async () => {
     // prepare user
     const testUserCreated = await AdminTools.createUser(validtestUser);
-    if(!testUserCreated) throw new TestingError("Test user could not be created!")
+    const requestIssuerUserCreated = await AdminTools.createUser(requestIssuerUser);
+    await AdminTools.setBalance(requestIssuerUser.email, 10)
+    if(!testUserCreated || !requestIssuerUserCreated) throw new TestingError("Test user could not be created!")
     // login user to get valid token
-    token = await AdminTools.loginAndRetrieveSession(validtestUser);
+    let authTokenIssuer = await AdminTools.loginAndRetrieveSession(requestIssuerUser);
     // Create a test request for favourites
     const sampleRequest = {
         title: "Test Request for Favourites",
-        category: "Test Category",
+        category: RequestCategory.RENT,
         credits: 10,
         description: "Testing favourite functionality",
         from: "2025-10-25T09:00:00Z",
         to: "2025-10-30T17:00:00Z",
     };
 
-    const requestRes = await request(app).post("/request").set("Cookie", token).send(sampleRequest);
+    const requestRes = await request(app).post("/request").set("Cookie", authTokenIssuer).send(sampleRequest);
+    expect(requestRes.status).toBe(StatusCodes.CREATED)
     testRequestId = requestRes.body.id;
+    token = await AdminTools.loginAndRetrieveSession(validtestUser)
 });
 
 afterAll(async () => {
     // cleanup users
     await AdminTools.deleteUserByMail(validtestUser.email)
+    await AdminTools.deleteUserByMail(requestIssuerUser.email);
 });
 
 describe("Testing FavouriteService", () => {
@@ -49,7 +56,7 @@ describe("Testing FavouriteService", () => {
             .post(`/favourites?id=${testRequestId}`)
             .set("Cookie", token)
             .send();
-        expect(res.status).toBe(201);
+        expect(res.status).toBe(StatusCodes.CREATED);
     });
 
     it("Adding the same request again should fail with conflict", async () => {

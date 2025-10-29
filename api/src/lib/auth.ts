@@ -3,7 +3,7 @@ import {drizzleAdapter} from "better-auth/adapters/drizzle";
 import {drizzle} from "drizzle-orm/mysql2";
 import {account, session, user, verification} from "../db/auth-schema.js";
 import {admin} from "better-auth/plugins";
-import {favouriteTable, requestTable} from "../db/tables.js";
+import {favouriteTable, requestTable, transactionsTable} from "../db/tables.js";
 import DatabaseError from "../errors/DatabaseError.js";
 
 if(process.env.DB_USER == undefined) throw new DatabaseError("Missing database user in config");
@@ -22,7 +22,8 @@ export const auth = betterAuth({
             account,
             verification,
             requestTable,
-            favouriteTable
+            favouriteTable,
+            transactionsTable
         }
     }),
     emailAndPassword: {

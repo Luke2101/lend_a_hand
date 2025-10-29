@@ -7,13 +7,25 @@ import logger from "../util/logger.js";
 
 export async function authenticateUser(req: Request, res: Response, next: NextFunction): Promise<void> {
     const headers = fromNodeHeaders(req.headers);
-    const session = await auth.api.getSession({headers});
+    try {
+        const session = await auth.api.getSession({headers});
+        if(!session || !session.user) {
+            res.status(StatusCodes.UNAUTHORIZED).send("Ungültige Sitzung!");
+            return;
+        }
+        req.session = session.session;
+        if(session.user.image === undefined) session.user.image = null;
+        req.user = {
+            ...session.user,
+            image: session.user.image
 
-    if(!session || !session.user) {
-        res.status(StatusCodes.UNAUTHORIZED).send("Ungültige Sitzung!");
-        return;
+        };
+        next();
+    }catch (err) {
+        logger.error(err);
+        //TODO: SEND RESET-COOKIE-MESSAGE BACK
     }
-    req.session = session.session;
-    req.user = session.user;
-    next();
+
+
+
 }

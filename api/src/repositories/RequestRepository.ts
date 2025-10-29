@@ -2,7 +2,6 @@ import type {CreateRequestBody} from "../schemas/requestSchemas.js";
 import {db} from "../lib/auth.js";
 import {requestTable} from "../db/tables.js";
 import logger from "../util/logger.js";
-import type {User} from "better-auth";
 import {and, eq, isNull, like} from "drizzle-orm";
 import type {SRequest} from "../types.js";
 import {user} from "../db/auth-schema.js";
@@ -66,7 +65,18 @@ class RequestRepository {
 
     public async getRequestById(reqId: number) {
         try {
-            const result = await db.select().from(requestTable).where(eq(requestTable.id, reqId));
+            const result = await db.select({
+                id:requestTable.id,
+                title: requestTable.title,
+                category: requestTable.category,
+                credits: requestTable.credits,
+                description: requestTable.description,
+                creator: requestTable.creator,
+                accepted_by: requestTable.accepted_by,
+                from: requestTable.from,
+                to: requestTable.to,
+                prename: user.prename
+            }).from(requestTable).innerJoin(user,eq(user.id, requestTable.creator)).where(eq(requestTable.id, reqId));
 
             if(result.length == 0) {
                 logger.warn(`Unable to get request with id=${reqId} as it doesn't exist!`)

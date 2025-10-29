@@ -2,7 +2,7 @@ import type {AuthenticatedRequest} from "../types.js";
 import type {Response} from "express";
 import FavouriteService from "../services/FavouriteService.js";
 import {StatusCodes} from "http-status-codes";
-import type {UpdateQueryParams} from "../schemas/requestSchemas.js";
+import type {IdParam} from "../schemas/requestSchemas.js";
 
 class FavouriteController {
 
@@ -32,7 +32,7 @@ class FavouriteController {
     /**
      * Removes a request from the authenticated user's favourites.
      *
-     * @param {AuthenticatedRequest<{},{},{},UpdateQueryParams>} req - Express request object containing the request ID to remove (`req.query.id`) and authenticated user info.
+     * @param {AuthenticatedRequest<{},{},{},IdParam>} req - Express request object containing the request ID to remove (`req.query.id`) and authenticated user info.
      * @param {Response} res - Express response object used to send back HTTP responses.
      *
      * @returns {Promise<void>} Sends HTTP responses:
@@ -40,7 +40,7 @@ class FavouriteController {
      *  - 404 Not Found: Request does not exist in user's favourites.
      *  - 500 Internal Server Error: Error during removal.
      */
-    public static async remove(req: AuthenticatedRequest<{},{},{},UpdateQueryParams>, res: Response) {
+    public static async remove(req: AuthenticatedRequest<{},{},{},IdParam>, res: Response) {
         const resultStatusCode = await FavouriteController.favouriteService.removeInterest(req.user.id, req.query.id);
         return res.status(resultStatusCode).send();
     }
@@ -48,16 +48,17 @@ class FavouriteController {
     /**
      * Adds a request to the authenticated user's favourites.
      *
-     * @param {AuthenticatedRequest<{},{},{},UpdateQueryParams>} req - Express request object containing the request ID to add (`req.query.id`) and authenticated user info.
+     * @param {AuthenticatedRequest<{},{},{},IdParam>} req - Express request object containing the request ID to add (`req.query.id`) and authenticated user info.
      * @param {Response} res - Express response object used to send back HTTP responses.
      *
      * @returns {Promise<void>} Sends HTTP responses:
      *  - 201 Created: Request successfully added to favourites.
      *  - 409 Conflict: Request is already in the user's favourites.
      *  - 404 Not Found: Request does not exist.
+     *  - 403 Forbidden: Cant be interested in own request
      *  - 500 Internal Server Error: Error during addition.
      */
-    public static async add(req: AuthenticatedRequest<{},{},{},UpdateQueryParams>, res: Response) {
+    public static async add(req: AuthenticatedRequest<{},{},{},IdParam>, res: Response) {
         const resultStatusCode = await FavouriteController.favouriteService.addInterest(req.user.id, req.query.id);
         return res.status(resultStatusCode).send();
     }

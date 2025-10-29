@@ -1,7 +1,7 @@
 import {StatusCodes} from "http-status-codes";
 import RequestService from "../services/RequestService.js";
 import type {Request, Response} from "express";
-import type {CreateRequestBody, UpdateQueryParams} from "../schemas/requestSchemas.js";
+import type {CreateRequestBody, IdParam} from "../schemas/requestSchemas.js";
 import type {AuthenticatedRequest} from "../types.js";
 
 /**
@@ -36,15 +36,16 @@ class RequestController {
      * }
      */
     public static async create(req: AuthenticatedRequest<{},{},CreateRequestBody>, res: Response) {
-        const result = await RequestController.requestService.createRequest(req.user.id, req.body);
+        const result = await RequestController.requestService.createRequest(req.user.id, req.body, req.user.balance);
         if(result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
         if(result == StatusCodes.FORBIDDEN) return res.status(StatusCodes.FORBIDDEN).send({message: "REQUEST_LIMIT_REACHED"})
+        if(result == StatusCodes.PAYMENT_REQUIRED) return res.status(StatusCodes.PAYMENT_REQUIRED).send({message: "NOT_ENOUGH_BALANCE"})
         return res.status(StatusCodes.CREATED).send(result);
     }
 
     /**
      * Deletes a specific request
-     * @param {AuthenticatedRequest<{},{}, {},UpdateQueryParams>} req - Authenticated request with request ID in query params
+     * @param {AuthenticatedRequest<{},{}, {},IdParam>} req - Authenticated request with request ID in query params
      * @param {Response} res - Express response object
      * @returns {Promise<Response>} Response indicating success or failure of deletion
      *
@@ -54,7 +55,7 @@ class RequestController {
      * @example
      * // DELETE /api/requests?id=123
      */
-    public static async delete(req: AuthenticatedRequest<{},{}, {},UpdateQueryParams>, res: Response) {
+    public static async delete(req: AuthenticatedRequest<{},{}, {},IdParam>, res: Response) {
         const result = await RequestController.requestService.deleteRequest(req.user.id,req.query.id)
         if(result == StatusCodes.FORBIDDEN) return res.status(StatusCodes.FORBIDDEN).send({message: "REQUEST_CREATOR_TOKEN_MISMATCH"});
         if(result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({message: "ERROR_DURING_DELETION"})
@@ -63,7 +64,7 @@ class RequestController {
 
     /**
      * Updates an existing request
-     * @param {AuthenticatedRequest<{}, {}, CreateRequestBody, UpdateQueryParams>} req - Authenticated request with update data and request ID
+     * @param {AuthenticatedRequest<{}, {}, CreateRequestBody, IdParam>} req - Authenticated request with update data and request ID
      * @param {Response} res - Express response object
      * @returns {Promise<Response>} Response indicating success or failure of update
      *
@@ -74,7 +75,7 @@ class RequestController {
      * // PUT /api/requests?id=123
      * // Request body same as create
      */
-    public static async update(req: AuthenticatedRequest<{}, {}, CreateRequestBody, UpdateQueryParams>, res: Response) {
+    public static async update(req: AuthenticatedRequest<{}, {}, CreateRequestBody, IdParam>, res: Response) {
         const result = await RequestController.requestService.updateRequest(req.query.id, req.user.id, req.body)
         if(result == StatusCodes.FORBIDDEN) return res.status(StatusCodes.FORBIDDEN).send({message: "REQUEST_CREATOR_TOKEN_MISMATCH"});
         if(result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({message: "UNABLE_TO_UPDATE_REQUEST"});
@@ -83,7 +84,7 @@ class RequestController {
 
     /**
      * Accepts a request to fulfill the service
-     * @param {AuthenticatedRequest<{},{}, {},UpdateQueryParams>} req - Authenticated request with request ID in query params
+     * @param {AuthenticatedRequest<{},{}, {},IdParam>} req - Authenticated request with request ID in query params
      * @param {Response} res - Express response object
      * @returns {Promise<Response>} Response indicating success or failure of acceptance
      *
@@ -94,7 +95,7 @@ class RequestController {
      * @example
      * // POST /api/requests/accept?id=123
      */
-    public static async accept(req: AuthenticatedRequest<{},{}, {},UpdateQueryParams>, res: Response) {
+    public static async accept(req: AuthenticatedRequest<{},{}, {},IdParam>, res: Response) {
         const result: StatusCodes = await RequestController.requestService.acceptRequest(req.query.id,req.user.id);
         if(result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
         if(result == StatusCodes.NOT_FOUND) return res.status(StatusCodes.NOT_FOUND).send({message: "REQUEST_NOT_FOUND"});
@@ -104,7 +105,7 @@ class RequestController {
 
     /**
      * Retrieves a specific request by ID
-     * @param {Request<{},{}, {},UpdateQueryParams>} req - Request with request ID in query params
+     * @param {Request<{},{}, {},IdParam>} req - Request with request ID in query params
      * @param {Response} res - Express response object
      * @returns {Promise<Response>} Response with request data or error message
      *
@@ -114,7 +115,7 @@ class RequestController {
      * @example
      * // GET /api/requests?id=123
      */
-    public static async get(req: Request<{},{}, {},UpdateQueryParams>, res: Response) {
+    public static async get(req: Request<{},{}, {},IdParam>, res: Response) {
         const result = await RequestController.requestService.getRequest(req.query.id)
         if(result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
         if(result == StatusCodes.NOT_FOUND) return res.status(StatusCodes.NOT_FOUND).send({message: "REQUEST_NOT_FOUND"})
@@ -153,6 +154,16 @@ class RequestController {
     public static async self(req: AuthenticatedRequest, res: Response){
         const result = await RequestController.requestService.getRequestsForUser(req.user.id);
         if(result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR);
+        return res.status(StatusCodes.OK).send(result);
+    }
+
+    public static async finish(req: AuthenticatedRequest<{},{},{}, IdParam>, res: Response) {
+        const result = await RequestController.requestService.finishRequest(req.user.id,req.query.id)
+        if(result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(result).send();
+        if(result == StatusCodes.NOT_FOUND) return res.status(result).send({message: "REQUEST_DOES_NOT_EXIST"});
+        if(result == StatusCodes.CONFLICT) return res.status(result).send({message: "REQUEST_NOT_ACCEPTED"});
+        if(result == StatusCodes.PAYMENT_REQUIRED) return res.status(result).send({message: "INSUFFICIENT_BALANCE"});
+        if(result == StatusCodes.FORBIDDEN) return res.status(result).send({message: "CREATOR_TOKEN_MISMATCH"})
         return res.status(StatusCodes.OK).send(result);
     }
 

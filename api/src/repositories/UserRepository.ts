@@ -1,12 +1,12 @@
-import { auth, db } from "../lib/auth.js";
-import { user } from "../db/auth-schema.js";
-import { eq } from "drizzle-orm";
-import type { SignUpBody } from "../schemas/authSchemas.js";
-import DatabaseError from "../errors/DatabaseError.js";
-import chalk, { colorNames, colors } from "chalk";
+import {auth, db} from "../lib/auth.js";
+import {user} from "../db/auth-schema.js";
+import {eq} from "drizzle-orm";
+import type {SignUpBody} from "../schemas/authSchemas.js";
+import chalk from "chalk";
 import logger from "../util/logger.js";
-import { StatusCodes } from "http-status-codes";
-import type { UpdateUserBody } from "../schemas/userSchemas.js";
+import type {UpdateUserBody} from "../schemas/userSchemas.js";
+import DatabaseError from "../errors/DatabaseError.js";
+import type {UserModel} from "../types.js";
 
 /**
  * @class UserRepository
@@ -53,6 +53,7 @@ class UserRepository {
                     street: street,
                     houseNumber: houseNumber,
                     city: city,
+                    balance: 0
                 }
             })
             logger.info(`Successfully created user with id=[${chalk.yellow(result.user.id)}] and email=[${chalk.yellow(email)}]`);
@@ -104,6 +105,57 @@ class UserRepository {
             console.error(err)
             return false;
         }
+    }
+
+    /**
+     * Checks if an user exists for a given userId
+     * @param userId - The userId which should be checked if there is a valid account for
+     */
+    public async checkIfUserExists(userId: string) {
+        try {
+            const result = await db.select().from(user).where(eq(user.id, userId));
+            return result.length == 1;
+        }catch(err: any) {
+            console.error(err)
+            return false;
+        }
+    }
+
+    public async removeMoneyFromAccount(userId: string, amount: number) {
+        const currentBalance = (await db.select({balance: user.balance}).from(user).where(eq(user.id, userId)))[0]
+        if(!currentBalance) {
+            logger.error(`Unable to find balance for user=${userId} while removing money!`)
+            return false;
+        }
+        const resultingBalance = currentBalance.balance - amount;
+        if(resultingBalance < 0) {
+            logger.error(`Insufficient balance for user=${userId} while removing money!`)
+            return false;
+        }
+        const result = await db.update(user).set({
+            balance: resultingBalance
+        }).where(eq(user.id, userId))
+        logger.debug(`Removed money from uId=${userId} with result=${result[0].affectedRows == 1}`)
+        return result[0].affectedRows == 1;
+    }
+
+    public async addMoneyToAccount(userId: string, amount: number) {
+        const currentBalance = (await db.select({balance: user.balance}).from(user).where(eq(user.id, userId)))[0]
+        if(!currentBalance) {
+            logger.error(`Unable to find balance for user=${userId} while removing money!`)
+            return false;
+        }
+        const resultingBalance = currentBalance.balance + amount;
+
+        const result = await db.update(user).set({
+            balance: resultingBalance
+        }).where(eq(user.id, userId))
+        return result[0].affectedRows == 1;
+    }
+
+    public async getUserById(userId: string): Promise<UserModel | undefined> {
+        const u = await db.select().from(user).where(eq(user.id,userId));
+        return u[0];
     }
 }
 

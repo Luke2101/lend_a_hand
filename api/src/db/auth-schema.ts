@@ -24,6 +24,7 @@ export const user = mysqlTable("user", {
   street: text("street").notNull(),
   houseNumber: text("house_number").notNull(),
   city: text("city").notNull(),
+  balance: int("balance").default(0).notNull(),
 });
 
 export const session = mysqlTable("session", {

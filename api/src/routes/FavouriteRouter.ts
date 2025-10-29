@@ -60,6 +60,8 @@ router.get("/", FavouriteController.get as RequestHandler);
  *     responses:
  *       201:
  *         description: Request successfully added to favourites
+ *       403:
+ *         description: Cant be interested in own requests
  *       409:
  *         description: Request is already in favourites
  *         content:
@@ -104,10 +106,6 @@ router.post(
  *       500:
  *         description: Internal server error
  */
-router.delete(
-    "/",
-    validateQuery(updateRequestQuerySchema),
-    FavouriteController.remove as unknown as RequestHandler
-);
+router.delete("/", validateQuery(updateRequestQuerySchema), FavouriteController.remove as unknown as RequestHandler);
 
 export default router;

@@ -478,4 +478,7 @@ router.get("/nearby", RequestController.nearby as unknown as RequestHandler)
  *                   example: "INTERNAL_SERVER_ERROR"
  */
 router.get("/self", RequestController.self as RequestHandler)
+
+
+router.post("/finish", validateQuery(updateRequestQuerySchema), RequestController.finish as unknown as RequestHandler)
 export default router;

@@ -1,47 +1,95 @@
 import {app} from "../../src/api.js";
 import request from "supertest";
-
-import {fromNodeHeaders} from "better-auth/node";
-import {afterAll} from "vitest";
 import {getValidUniqueUser} from "../fixtures/users.js";
 import AdminTools from "../util/AdminTools.js";
 import {StatusCodes} from "http-status-codes";
+import RequestCategory from "../../src/util/RequestCategory.js";
+import type {InsertRequest} from "../../src/types.js";
+import type {CreateRequestBody} from "../../src/schemas/requestSchemas.js";
 
 
-let token: string[] = [];
+describe("Create Request", async () => {
+    const userA = getValidUniqueUser();
+    let aToken: string[];
+    await AdminTools.createUser(userA);
+    aToken = await AdminTools.loginAndRetrieveSession(userA);
+    await AdminTools.setBalance(userA.email, 100)
 
-const validtestUser = getValidUniqueUser();
+    it("User A creates new invalid request", async () => {
+        const result = await request(app).post("/request").set("Cookie" , aToken).send({
+            title: "My title",
+            description: "This is a description"
+        });
 
-beforeAll(async () => {
-    await AdminTools.createUser(validtestUser);
-    token = await AdminTools.loginAndRetrieveSession(validtestUser);
-})
-
-describe("Tesing Request Cycle", () => {
-    let requestId: number | undefined;
-    it("Create a new request within limit", async () => {
-        const sampleRequest = {
-            "title": "Website Design Request",
-            "category": "Graphic Design",
-            "credits": 50,
-            "description": "Need a modern, responsive website design for a small business.",
-            "from": "2025-10-22T09:00:00Z",
-            "to": "2025-10-29T17:00:00Z"
-
-        }
-
-        const result = await request(app).post("/request").set("Cookie", token).send(sampleRequest)
-        expect(result.status).toBe(StatusCodes.CREATED);
-
-        requestId = result.body.id;
+        expect(result.status).toBe(StatusCodes.BAD_REQUEST)
     })
 
-    it("Check if request can be deleted", async () => {
-        const result = await request(app).delete(`/request?id=${requestId}`).set("Cookie", token).send();
-        expect(result.status).toBe(StatusCodes.OK);
+    it("User A creates new valid request", async () => {
+        const result = await request(app).post("/request").set("Cookie" , aToken).send({
+            title: "My title",
+            description: "This is a description",
+            category: RequestCategory.RENT,
+            credits: 50
+        });
+
+        expect(result.status).toBe(StatusCodes.CREATED)
     })
 })
 
-afterAll(async () => {
-    await AdminTools.deleteUserByMail(validtestUser.email)
+describe("Get Request", async () => {
+
+    const userA = getValidUniqueUser();
+    let aToken: string[];
+    await AdminTools.createUser(userA);
+    aToken = await AdminTools.loginAndRetrieveSession(userA);
+    await AdminTools.setBalance(userA.email, 100)
+
+
+    const req: CreateRequestBody = {
+        title: "Sample",
+        credits: 100,
+        category: RequestCategory.RENT,
+    }
+    const {id} = await AdminTools.createSampleRequest(req, aToken)
+
+    it("Get Request with invalid id", async () => {
+        const result = await request(app).get(`/request?id=${90}`).set("Cookie", aToken);
+        expect(result.status).toBe(StatusCodes.NOT_FOUND)
+    })
+
+    it("Get Request with valid id", async () => {
+        const result = await request(app).get(`/request?id=${id}`).set("Cookie", aToken);
+        expect(result.status).toBe(StatusCodes.OK)
+        expect(result.body).toHaveProperty("id")
+        expect(result.body).toHaveProperty("creator")
+        expect(result.body).toHaveProperty("credits")
+    })
 })
+
+describe("Delete Request", async () => {
+
+    const userA = getValidUniqueUser();
+    let aToken: string[];
+    await AdminTools.createUser(userA);
+    aToken = await AdminTools.loginAndRetrieveSession(userA);
+    await AdminTools.setBalance(userA.email, 100)
+
+    const req: CreateRequestBody = {
+        title: "Sample",
+        credits: 100,
+        category: RequestCategory.RENT,
+    }
+    const {id} = await AdminTools.createSampleRequest(req, aToken);
+
+    it("Delete Request with invalid id", async () => {
+        const result = await request(app).delete(`/request?id=${789}`).set("Cookie", aToken);
+        expect(result.status).toBe(StatusCodes.FORBIDDEN)
+    })
+
+    it("Delete Request with valid id", async () => {
+        const result = await request(app).delete(`/request?id=${id}`).set("Cookie", aToken);
+        expect(result.status).toBe(StatusCodes.OK)
+    })
+})
+
+

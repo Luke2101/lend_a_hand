@@ -6,6 +6,8 @@ import type { UpdateUserBody } from "../schemas/userSchemas.js";
 import { type Session } from "better-auth";
 import UserRepository from "../repositories/UserRepository.js";
 import Service from "./Service.js";
+import type {UserModel} from "../types.js";
+import TransactionService from "./TransactionService.js";
 
 /**
  * @class UserService
@@ -23,6 +25,8 @@ class UserSerivce extends Service<UserRepository>{
     constructor() {
         super(new UserRepository())
     }
+
+    private transactionService = new TransactionService();
 
     /**
      * Handles user logout process
@@ -60,6 +64,26 @@ class UserSerivce extends Service<UserRepository>{
         if(!result) return StatusCodes.INTERNAL_SERVER_ERROR;
         return StatusCodes.OK;
     }
+
+    public async transferMoney(fromAccount: string, toAccount: string, amount: number) {
+        const sender = await this.repository().getUserById(fromAccount);
+        if(!sender) return StatusCodes.NOT_FOUND;
+        if(sender.balance < amount) return StatusCodes.PAYMENT_REQUIRED;
+        const doesToAccountExist = await this.doesUserExist(toAccount)
+        if(!doesToAccountExist) return StatusCodes.NOT_FOUND;
+        const moneySuccessfullyRemoved = await this.repository().removeMoneyFromAccount(sender.id, amount);
+        if(!moneySuccessfullyRemoved) return StatusCodes.INTERNAL_SERVER_ERROR;
+        const moneyAddedSuccessfully = await this.repository().addMoneyToAccount(toAccount, amount);
+        if(!moneyAddedSuccessfully) return StatusCodes.INTERNAL_SERVER_ERROR;
+        await this.transactionService.logTransaction({fromAccount: sender.id, toAccount: toAccount, amount: amount})
+        return StatusCodes.OK;
+    }
+    //TODO GET REQUEST FOR USER INFO
+
+    private async doesUserExist(userId: string) {
+        return this.repository().checkIfUserExists(userId)
+    }
+
 }
 
 export default UserSerivce;

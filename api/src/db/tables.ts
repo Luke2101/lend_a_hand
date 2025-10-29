@@ -1,11 +1,12 @@
-import {mysqlTable, varchar, int, text, datetime, boolean, timestamp} from "drizzle-orm/mysql-core";
+import {mysqlTable, varchar, int, text, datetime, timestamp, mysqlEnum} from "drizzle-orm/mysql-core";
+
 
 
 
 export const requestTable = mysqlTable("request", {
     id:int("id").primaryKey().autoincrement().notNull(),
     title: varchar("title", { length: 255 }).notNull(),
-    category: varchar("category", { length: 255 }).notNull(),
+    category: mysqlEnum("category", ["help", "giveaway", "rent"]),
     credits: int("credits").notNull(),
     description: text("description"),
     creator: varchar("creator", {length: 36}).notNull(),
@@ -24,5 +25,8 @@ export const favouriteTable = mysqlTable("interested", {
 export const transactionsTable = mysqlTable("transactions", {
     id: int("id").primaryKey().autoincrement().notNull(),
     from_account: varchar("from_account", {length: 36}).notNull(),
-    to_account: varchar("from_account", {length: 36}).notNull(),
+    to_account: varchar("to_account", {length: 36}).notNull(),
+    amount: int("amount").notNull(),
+    created_at: timestamp("created_at", { fsp: 3 }).defaultNow().notNull(),
 })
+
