@@ -37,6 +37,7 @@ class RequestController {
      */
     public static async create(req: AuthenticatedRequest<{},{},CreateRequestBody>, res: Response) {
         const result = await RequestController.requestService.createRequest(req.user.id, req.body, req.user.balance);
+        if(result == StatusCodes.BAD_GATEWAY) return res.status(StatusCodes.BAD_REQUEST).send({message: "CREDITS_CANNOT_BE_NULL"})
         if(result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
         if(result == StatusCodes.FORBIDDEN) return res.status(StatusCodes.FORBIDDEN).send({message: "REQUEST_LIMIT_REACHED"})
         if(result == StatusCodes.PAYMENT_REQUIRED) return res.status(StatusCodes.PAYMENT_REQUIRED).send({message: "NOT_ENOUGH_BALANCE"})

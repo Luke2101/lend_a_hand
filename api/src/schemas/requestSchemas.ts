@@ -4,7 +4,7 @@ import RequestCategory from "../util/RequestCategory.js";
 export const createRequestSchema = z.object({
     title: z.string().min(1).max(255),
     category: z.enum(RequestCategory),
-    credits: z.number().int().positive(),
+    credits: z.number().int().nonnegative(),
     description: z.string().min(1).optional(),
     from: z.iso.datetime().optional().nullable(),
     to: z.iso.datetime().optional().nullable()

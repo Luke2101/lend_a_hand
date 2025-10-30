@@ -18,7 +18,7 @@ export type SRequest = {
     id: number;
     title: string;
     category: RequestCategory;
-    credits: number;
+    credits?: number;
     description?: string;
     from?: string;
     to?: string;

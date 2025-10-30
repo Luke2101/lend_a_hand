@@ -75,7 +75,7 @@ const router = express.Router();
  *           example: "Offer: Need help moving a couch"
  *         category:
  *           type: string
- *           example: "Household"
+ *           example: "RENT"
  *         credits:
  *           type: integer
  *           example: 10
@@ -90,22 +90,14 @@ const router = express.Router();
  *           type: string
  *           format: date-time
  *           example: "2025-10-28T12:00:00Z"
- *         status:
- *           type: string
- *           description: Current status of the request.
- *           example: "pending"
  *         creator:
  *           type: string
  *           description: UUID of the user who created the request.
  *           example: "2a1b3c4d-5678-9012-cdef-3456789abcde"
- *         created_at:
+ *         prename:
  *           type: string
- *           format: date-time
- *           example: "2025-10-20T12:00:00Z"
- *         updated_at:
- *           type: string
- *           format: date-time
- *           example: "2025-10-22T15:30:00Z"
+ *           description: Name of issuer of this request
+ *           example: "John"
  *
  *     # ============================
  *     # DETAILED REQUEST INFO
@@ -113,15 +105,6 @@ const router = express.Router();
  *     RequestInfo:
  *       allOf:
  *         - $ref: '#/components/schemas/RequestResponse'
- *       properties:
- *         accepted:
- *           type: boolean
- *           example: false
- *         accepted_by:
- *           type: string
- *           nullable: true
- *           description: UUID of the user who accepted the request (if any).
- *           example: null
  *
  *     # ============================
  *     # COMMON ERROR STRUCTURES
