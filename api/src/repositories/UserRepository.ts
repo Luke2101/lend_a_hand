@@ -18,6 +18,13 @@ import type {UserModel} from "../types.js";
  * for authentication while managing additional user profile data.
  */
 class UserRepository {
+
+    /**
+     * The amount of credits every user get upon creating a new account
+     * @private
+     */
+    private static readonly USER_START_BALANCE = 200;
+
     /**
      * Creates a new user in the system
      * @param {SignUpBody} body - User registration data
@@ -53,7 +60,7 @@ class UserRepository {
                     street: street,
                     houseNumber: houseNumber,
                     city: city,
-                    balance: 0
+                    balance: UserRepository.USER_START_BALANCE ?? 0
                 }
             })
             logger.info(`Successfully created user with id=[${chalk.yellow(result.user.id)}] and email=[${chalk.yellow(email)}]`);
