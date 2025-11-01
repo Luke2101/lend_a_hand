@@ -420,10 +420,6 @@ router.get("/nearby", RequestController.nearby.bind(RequestController) as unknow
  *                     type: string
  *                     nullable: true
  *                     example: null
- *                   creator:
- *                     type: string
- *                     description: Unique user ID of the request creator
- *                     example: "igiOk6R1o0DvGjvmRHnz8UYWDXXd8oQf"
  *                   accepted_by:
  *                     type: string
  *                     nullable: true

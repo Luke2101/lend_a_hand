@@ -60,7 +60,7 @@ describe("Get Request", async () => {
         const result = await request(app).get(`/request?id=${id}`).set("Cookie", user.token);
         expect(result.status).toBe(StatusCodes.OK)
         expect(result.body).toHaveProperty("id")
-        expect(result.body).toHaveProperty("creator")
+        expect(result.body).not.toHaveProperty("creator")
         expect(result.body).toHaveProperty("credits")
     })
 

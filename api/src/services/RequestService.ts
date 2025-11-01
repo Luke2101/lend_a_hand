@@ -92,7 +92,7 @@ class RequestService extends Service<RequestRepository>{
         const originalRequest = await this.repository().getRequestById(requestId);
         if(originalRequest === undefined)        return StatusCodes.INTERNAL_SERVER_ERROR;
         if(originalRequest === null)             return StatusCodes.NOT_FOUND;
-        if(originalRequest.creator == userId)   return StatusCodes.FORBIDDEN;
+        if(await this.didUserCreateRequest(userId, requestId))   return StatusCodes.FORBIDDEN;
         if(originalRequest.accepted_by != null) return StatusCodes.FORBIDDEN;
 
         const result = await this.repository().acceptRequest(requestId, userId);
