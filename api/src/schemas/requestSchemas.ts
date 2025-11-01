@@ -14,9 +14,14 @@ export const updateRequestQuerySchema = z.object({
     id: z.coerce.number().int().positive(),
 })
 
+export const idParamStringQuerySchema = z.object({
+    id: z.string().nonempty()
+})
+
 export const updateReuqestSchema = createRequestSchema.partial();
 
 // Type inference for TypeScript
 export type CreateRequestBody = z.infer<typeof createRequestSchema>;
 export type UpdateRequestBody = z.infer<typeof updateReuqestSchema >;
 export type IdParam = z.infer<typeof updateRequestQuerySchema>;
+export type IdParamString = z.infer<typeof idParamStringQuerySchema>;

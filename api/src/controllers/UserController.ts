@@ -5,6 +5,7 @@ import type { AuthenticatedRequest } from "../types.js";
 import type { UpdateUserBody } from "../schemas/userSchemas.js";
 import UserService from "../services/UserService.js";
 import logger from "../util/logger.js";
+import type {IdParam, IdParamString} from "../schemas/requestSchemas.js";
 
 /**
  * @class UserController
@@ -49,7 +50,7 @@ class UserController {
      *  Response: { id: "user-123", email: "user@example.com", ... }
      */
     public static async info(req: AuthenticatedRequest, res: Response) {
-        const result = await this.userService.getInfoForUser(req.user.id);
+        const result = await this.userService.getDeepInfoForUser(req.user.id);
         if(result == StatusCodes.NOT_FOUND) return res.status(StatusCodes.NOT_FOUND).send({message: "USER_NOT_FOUND"})
         if(result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.NOT_FOUND).send()
         return res.status(StatusCodes.OK).send(result)
@@ -73,6 +74,12 @@ class UserController {
         if(result == StatusCodes.BAD_REQUEST) return res.status(StatusCodes.BAD_REQUEST).send();
         if(result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
         return res.status(StatusCodes.OK).send({message: "USER_UPDATED"})
+    }
+
+    public static async get(req: AuthenticatedRequest<{},{}, {},IdParamString>, res: Response) {
+        const result = await UserController.userService.getInfoForUser(req.query.id)
+        if(result == StatusCodes.NOT_FOUND) return res.status(StatusCodes.NOT_FOUND).send({message: "USER_NOT_FOUND"})
+        return res.status(StatusCodes.OK).send(result);
     }
 }
 

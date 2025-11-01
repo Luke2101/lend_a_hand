@@ -1,7 +1,8 @@
 import express, { type RequestHandler } from "express";
-import { validateBody } from "../middleware/validate.js";
+import {validateBody, validateQuery} from "../middleware/validate.js";
 import { updateSchema } from "../schemas/userSchemas.js";
 import UserController from "../controllers/UserController.js";
+import {idParamStringQuerySchema} from "../schemas/requestSchemas.js";
 
 const router = express.Router();
 
@@ -176,6 +177,50 @@ router.post("/logout", UserController.logout.bind(UserController));
 router.patch("/", validateBody(updateSchema), UserController.update.bind(UserController) as RequestHandler);
 
 
+/**
+ * @swagger
+ * /user:
+ *   get:
+ *     summary: Get basic user information
+ *     description: Returns prename, email, and postal code for a given user ID.
+ *     tags:
+ *       - User
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the user to fetch.
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved user info.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 prename:
+ *                   type: string
+ *                   example: "Marvin"
+ *                 email:
+ *                   type: string
+ *                   example: "marvin@example.com"
+ *                 plz:
+ *                   type: string
+ *                   example: "12345"
+ *       404:
+ *         description: User not found.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "USER_NOT_FOUND"
+ */
+router.get("/", validateQuery(idParamStringQuerySchema), UserController.get.bind(UserController) as unknown as RequestHandler)
 
 /**
  * @swagger

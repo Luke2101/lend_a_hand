@@ -34,7 +34,7 @@ class UserSerivce extends Service<UserRepository>{
         this.requestService = reqs;
     }
 
-    public async getInfoForUser(userId: string) {
+    public async getDeepInfoForUser(userId: string) {
         const userData = await this.repository().getUserById(userId);
         if(userData === undefined) return StatusCodes.NOT_FOUND;
         const requestData = await this.requestService?.getRequestsForUser(userId);
@@ -47,6 +47,16 @@ class UserSerivce extends Service<UserRepository>{
             availableBalance: userData.balance - spendCredits
         }
         return userInfo;
+    }
+
+    public async getInfoForUser(userId: string) {
+        const userData = await this.repository().getUserById(userId);
+        if(userData === undefined) return StatusCodes.NOT_FOUND;
+        return {
+            prename: userData.prename,
+            email: userData.email,
+            plz: userData.plz
+        };
     }
 
 
