@@ -4,7 +4,7 @@ export default defineConfig({
   test: {
       globals: true, // enable global describe, it, test, expect
       environment: 'node',
-      globalSetup: ['./tests/setup/testcontainers.ts'],
+      globalSetup: ['./tests/setup/globalSetup.ts'],
       hookTimeout: 60000
   },
 });

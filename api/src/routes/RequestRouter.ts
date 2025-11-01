@@ -1,6 +1,6 @@
 import express, {type RequestHandler} from "express";
 import {validateBody, validateQuery} from "../middleware/validate.js";
-import {createRequestSchema, updateRequestQuerySchema} from "../schemas/requestSchemas.js";
+import {createRequestSchema, updateRequestQuerySchema, updateReuqestSchema} from "../schemas/requestSchemas.js";
 import RequestController from "../controllers/RequestController.js";
 
 const router = express.Router();
@@ -260,7 +260,7 @@ router.delete("/", validateQuery(updateRequestQuerySchema), RequestController.de
  *                   type: string
  *                   example: UNABLE_TO_UPDATE_REQUEST
  */
-router.patch("/", validateBody(createRequestSchema), validateQuery(updateRequestQuerySchema),RequestController.update as unknown as RequestHandler)
+router.patch("/", validateBody(updateReuqestSchema), validateQuery(updateRequestQuerySchema),RequestController.update as unknown as RequestHandler)
 
 /**
  * @swagger

@@ -107,6 +107,11 @@ class UserRepository {
     public async checkIfEmailExists(email: string): Promise<boolean> {
         try {
             const result = await db.select({email: user.email}).from(user).where(eq(user.email, email));
+            if(result.length > 0) {
+                logger.debug(`User with email=${email} already exists`)
+                logger.debug(result)
+            }
+
             return result.length > 0;
         }catch(err: any) {
             console.error(err)

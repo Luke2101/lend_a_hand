@@ -5,12 +5,13 @@ import {account, session, user, verification} from "../db/auth-schema.js";
 import {admin} from "better-auth/plugins";
 import {favouriteTable, requestTable, transactionsTable} from "../db/tables.js";
 import DatabaseError from "../errors/DatabaseError.js";
+import logger from "../util/logger.js";
 
 if(process.env.DB_USER == undefined) throw new DatabaseError("Missing database user in config");
 if(process.env.DB_NAME == undefined) throw new DatabaseError("Missing database name in config");
 if(process.env.DB_HOST == undefined) throw new DatabaseError("Missing database host in config");
 if(process.env.DB_PORT == undefined) throw new DatabaseError("Missing database port in config");
-
+logger.debug(`Connecting to ${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME} with user=${process.env.DB_USER} and password=${process.env.DB_PASS}`)
 export const db = drizzle(`mysql://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`)
 
 export const auth = betterAuth({

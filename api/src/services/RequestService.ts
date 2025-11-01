@@ -1,4 +1,4 @@
-import type {CreateRequestBody} from "../schemas/requestSchemas.js";
+import type {CreateRequestBody, UpdateRequestBody} from "../schemas/requestSchemas.js";
 import RequestRepository from "../repositories/RequestRepository.js";
 import {StatusCodes} from "http-status-codes";
 import type {SRequest} from "../types.js";
@@ -63,19 +63,10 @@ class RequestService extends Service<RequestRepository>{
      * @throws {403} FORBIDDEN - When user is not the creator of the request
      * @throws {500} INTERNAL_SERVER_ERROR - When update fails
      */
-    public async updateRequest(requestId: number, userId: string, requestBody: CreateRequestBody){
+    public async updateRequest(requestId: number, userId: string, requestBody: UpdateRequestBody){
         const didUserCreateRequest = await this.didUserCreateRequest(userId, requestId);
         if(!didUserCreateRequest) return StatusCodes.FORBIDDEN;
-        const request: SRequest = {
-            id: requestId,
-            credits: requestBody.credits,
-            category: requestBody.category,
-            title: requestBody.title,
-            from: requestBody.from ?? undefined,
-            to: requestBody.to ?? undefined,
-            description: requestBody.description
-        }
-        const didRequestUpdate = await this.repository().updateRequest(request)
+        const didRequestUpdate = await this.repository().updateRequest(requestId, requestBody)
         if(!didRequestUpdate) return StatusCodes.INTERNAL_SERVER_ERROR;
         return StatusCodes.OK;
 

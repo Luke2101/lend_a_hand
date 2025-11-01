@@ -1,4 +1,4 @@
-import type {CreateRequestBody} from "../schemas/requestSchemas.js";
+import type {CreateRequestBody, UpdateRequestBody} from "../schemas/requestSchemas.js";
 import {db} from "../lib/auth.js";
 import {requestTable} from "../db/tables.js";
 import logger from "../util/logger.js";
@@ -45,7 +45,7 @@ class RequestRepository {
         }
     }
 
-    public async updateRequest(reqData: SRequest) {
+    public async updateRequest(requestId: number, reqData: UpdateRequestBody) {
         try {
             const result = await db.update(requestTable).set({
                 title: reqData.title,
@@ -54,11 +54,11 @@ class RequestRepository {
                 description: reqData.description,
                 from: reqData.from ? new Date(reqData.from) : undefined,
                 to: reqData.to ? new Date(reqData.to) : undefined,
-            }).where(eq(requestTable.id, reqData.id))
+            }).where(eq(requestTable.id, requestId))
 
-            return true;
+            return result[0].affectedRows == 1;
         }catch (err) {
-            logger.error(`Unable to delete request with id=${reqData.id}`)
+            logger.error(`Unable to delete request with id=${requestId}`)
             return false;
         }
     }

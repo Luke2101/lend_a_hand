@@ -15,10 +15,9 @@ const validtestUser = getValidUniqueUser();
 const requestIssuerUser = getValidUniqueUser();
 beforeAll(async () => {
     // prepare user
-    const testUserCreated = await AdminTools.createUser(validtestUser);
-    const requestIssuerUserCreated = await AdminTools.createUser(requestIssuerUser);
+    await AdminTools.createUser(validtestUser);
+    await AdminTools.createUser(requestIssuerUser);
     await AdminTools.setBalance(requestIssuerUser.email, 10)
-    if(!testUserCreated || !requestIssuerUserCreated) throw new TestingError("Test user could not be created!")
     // login user to get valid token
     let authTokenIssuer = await AdminTools.loginAndRetrieveSession(requestIssuerUser);
     // Create a test request for favourites

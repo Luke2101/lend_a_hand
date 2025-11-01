@@ -12,6 +12,9 @@ export default async function setup(){
         .withUserPassword(process.env.DB_PASS!)
         .withRootPassword(process.env.DB_ROOT_PASS!)
         .withDatabase(process.env.DB_NAME!)
+        .withAutoRemove(true)
+
+
 
     let instance: StartedMySqlContainer = await container.start()
     logger.info("Testing database successfully started!")
@@ -32,8 +35,8 @@ export default async function setup(){
         logger.error("Database setup script failed:", err);
         throw err;
     }
-
     return async () => {
+
         await instance.stop();
         logger.info("Testing database successfully shutdown")
     }
