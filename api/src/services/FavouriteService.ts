@@ -26,7 +26,7 @@ class FavouriteService extends Service<FavouriteRepository>{
         if(request === undefined) return StatusCodes.INTERNAL_SERVER_ERROR;
         if(request == StatusCodes.NOT_FOUND) return request;
         if(request == StatusCodes.INTERNAL_SERVER_ERROR) return request;
-        if(request.creator == userId) return StatusCodes.FORBIDDEN;
+        if(await this.requestService?.didUserCreateRequest(userId, requestId)) return StatusCodes.FORBIDDEN;
         const currentUserInterests = await this.repository().getInterestsForUserById(userId);
         if(currentUserInterests === undefined) return StatusCodes.INTERNAL_SERVER_ERROR;
         if(currentUserInterests.includes(Number(requestId))) return StatusCodes.CONFLICT;

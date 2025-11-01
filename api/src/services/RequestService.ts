@@ -176,7 +176,7 @@ class RequestService extends Service<RequestRepository>{
      * @param {number} requestId - ID of the request to verify
      * @returns {Promise<boolean>} True if user created the request, false otherwise
      */
-    private async didUserCreateRequest(userId: string, requestId: number): Promise<boolean> {
+    public async didUserCreateRequest(userId: string, requestId: number): Promise<boolean> {
         const pendingReqForUser = await this.repository().getAllUserRequests(userId);
         if(pendingReqForUser == undefined) return false;
         return pendingReqForUser.filter(req => req.id == requestId).length > 0
