@@ -144,7 +144,7 @@ const router = express.Router();
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post("/signup", validateBody(signUpSchema), AuthController.signUp);
+router.post("/signup", validateBody(signUpSchema), AuthController.signUp.bind(AuthController));
 
 /**
  * @swagger
@@ -198,6 +198,6 @@ router.post("/signup", validateBody(signUpSchema), AuthController.signUp);
  *             schema:
  *               $ref: '#/components/schemas/ErrorResponse'
  */
-router.post("/login", validateBody(signInSchema), AuthController.signIn);
+router.post("/login", validateBody(signInSchema), AuthController.signIn.bind(AuthController));
 
 export default router;

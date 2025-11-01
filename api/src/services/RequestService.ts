@@ -5,6 +5,7 @@ import type {SRequest} from "../types.js";
 import Service from "./Service.js";
 import UserService from "./UserService.js";
 import logger from "../util/logger.js";
+import UserSerivce from "./UserService.js";
 
 class RequestService extends Service<RequestRepository>{
 
@@ -14,7 +15,11 @@ class RequestService extends Service<RequestRepository>{
         super(new RequestRepository());
     }
 
-    private readonly userService = new UserService();
+    private userService: UserSerivce | undefined;
+
+    public setUserService(us: UserService){
+        this.userService = us;
+    }
 
     /**
      * Creates a new service request for a user
@@ -187,7 +192,7 @@ class RequestService extends Service<RequestRepository>{
         const request = await this.getRequest(requestId);
         if(typeof(request) == "number") {
             logger.debug(`Unable to finish request because it could not be found, code=${request}`)
-            return request;
+            return StatusCodes.NOT_FOUND;
         }
 
         const recipient = request.accepted_by;
@@ -196,7 +201,7 @@ class RequestService extends Service<RequestRepository>{
             return StatusCodes.CONFLICT
         };
 
-        const transferResult = await this.userService.transferMoney(userId, recipient, request.credits)
+        const transferResult = await this.userService?.transferMoney(userId, recipient, request.credits)
         if(transferResult != StatusCodes.OK) {
             logger.debug(`Unable to finish request because money transfer failed, code=${transferResult}`)
             return transferResult;

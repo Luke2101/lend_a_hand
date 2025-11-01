@@ -88,7 +88,7 @@ const router = express.Router();
  *               type: string
  *               example: "Ungültige Sitzung!"
  */
-router.get("/info", UserController.info as RequestHandler);
+router.get("/info", UserController.info.bind(UserController) as RequestHandler);
 
 /**
  * @swagger
@@ -118,7 +118,7 @@ router.get("/info", UserController.info as RequestHandler);
  *               type: string
  *               example: "Ungültige Sitzung!"
  */
-router.post("/logout", UserController.logout);
+router.post("/logout", UserController.logout.bind(UserController));
 
 /**
  * @swagger
@@ -173,7 +173,7 @@ router.post("/logout", UserController.logout);
  *       500:
  *         description: Internal server error while updating the user
  */
-router.patch("/", validateBody(updateSchema), UserController.update as RequestHandler);
+router.patch("/", validateBody(updateSchema), UserController.update.bind(UserController) as RequestHandler);
 
 
 

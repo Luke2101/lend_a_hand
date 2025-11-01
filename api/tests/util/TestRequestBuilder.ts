@@ -37,7 +37,8 @@ class TestRequestBuilder {
             await AdminTools.deleteRequestById(resBody.id)
         })
         return {
-            id: resBody.id as number
+            id: resBody.id as number,
+            credits: this.request.credits
         }
     }
 

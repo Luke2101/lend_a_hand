@@ -4,6 +4,7 @@ import type { Request, Response } from "express";
 import type { AuthenticatedRequest } from "../types.js";
 import type { UpdateUserBody } from "../schemas/userSchemas.js";
 import UserService from "../services/UserService.js";
+import logger from "../util/logger.js";
 
 /**
  * @class UserController
@@ -13,7 +14,12 @@ import UserService from "../services/UserService.js";
  * @property {UserService} userService - Service instance handling business logic for user operations
  */
 class UserController {
-    private static userService = new UserService();
+    private static userService: UserService
+
+    public static setUserService(us: UserService){
+        logger.debug(`Set user service to ${us}`)
+        this.userService = us;
+    }
 
     /**
      * Logs out the authenticated user
@@ -42,8 +48,11 @@ class UserController {
      *  GET /api/user/info
      *  Response: { id: "user-123", email: "user@example.com", ... }
      */
-    public static async info(req: AuthenticatedRequest, res: Response): Promise<Response> {
-        return res.status(StatusCodes.OK).send(req.user);
+    public static async info(req: AuthenticatedRequest, res: Response) {
+        const result = await this.userService.getInfoForUser(req.user.id);
+        if(result == StatusCodes.NOT_FOUND) return res.status(StatusCodes.NOT_FOUND).send({message: "USER_NOT_FOUND"})
+        if(result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.NOT_FOUND).send()
+        return res.status(StatusCodes.OK).send(result)
     }
 
     /**

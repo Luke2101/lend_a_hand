@@ -5,6 +5,7 @@ import RequestCategory from "../../src/util/RequestCategory.js";
 import TestRequestBuilder from "../util/TestRequestBuilder.js";
 import {TestUserBuilder} from "../util/TestUserBuilder.js";
 import AdminTools from "../util/AdminTools.js";
+import {faker} from "@faker-js/faker";
 
 describe("Create Request", async () => {
 
@@ -61,6 +62,25 @@ describe("Get Request", async () => {
         expect(result.body).toHaveProperty("id")
         expect(result.body).toHaveProperty("creator")
         expect(result.body).toHaveProperty("credits")
+    })
+
+    it("Get own requests that dont exist" , async () => {
+        const user = await new TestUserBuilder().build();
+        const result = await request(app).get(`/request/self`).set("Cookie", user.token);
+        expect(result.status).toBe(StatusCodes.OK);
+        expect(result.body).toStrictEqual([])
+    })
+
+    it("Get own requests" , async () => {
+        const user = await new TestUserBuilder().build();
+
+        for(let i = 0; i < 3; i++) {
+            await new TestRequestBuilder().withCredits(50).create(user.token)
+        }
+        const result = await request(app).get(`/request/self`).set("Cookie", user.token);
+        expect(result.status).toBe(StatusCodes.OK);
+        const body: [] = result.body;
+        expect(body.length).toBe(3)
     })
 })
 
@@ -156,23 +176,78 @@ describe("Accept Request" , async () => {
 describe("Finish Request", async () => {
     it("Finish a request that does not exist", async () => {
         const user = await new TestUserBuilder().build();
-        const result = await request(app).patch(`/request/finish?id=${777}`).set("Cookie", user.token).send();
+        const result = await request(app).post(`/request/finish?id=${777}`).set("Cookie", user.token).send();
+        console.log(result)
         expect(result.status).toBe(StatusCodes.FORBIDDEN)
+
     })
     it("Finish a request that user does not own", async () => {
         const creator = await new TestUserBuilder().build();
         const user = await new TestUserBuilder().build();
         const testRequest = await new TestRequestBuilder().create(creator.token);
-        const result = await request(app).patch(`/request/finish?id=${testRequest.id}`).set("Cookie", user.token).send();
+        const result = await request(app).post(`/request/finish?id=${testRequest.id}`).set("Cookie", user.token).send();
         expect(result.status).toBe(StatusCodes.FORBIDDEN)
+    })
+    it("Finish a request that has not been accepted yet", async () => {
+        const creator = await new TestUserBuilder().build();
+        const testRequest = await new TestRequestBuilder().create(creator.token);
+        const result = await request(app).post(`/request/finish?id=${testRequest.id}`).set("Cookie", creator.token).send();
+        expect(result.status).toBe(StatusCodes.CONFLICT)
     })
     it("Finish a request with insufficient balance", async () => {
         const user = await new TestUserBuilder().build();
-        const testRequest = await new TestRequestBuilder().create(user.token);
+        const acceptUser = await new TestUserBuilder().build();
+        const testRequest = await new TestRequestBuilder().withCredits(50).create(user.token);
         await AdminTools.setBalance(user.user.email, 0);
-        const result = await request(app).patch(`/request/finish?id=${testRequest.id}`).set("Cookie", user.token).send();
+        await AdminTools.acceptRequest(testRequest.id, acceptUser.token)
+
+        const result = await request(app).post(`/request/finish?id=${testRequest.id}`).set("Cookie", user.token).send();
         expect(result.status).toBe(StatusCodes.PAYMENT_REQUIRED)
     })
-    it("Finish a request successfully", async () => {})
+    it("Finish a request successfully", async () => {
+        const creator = await new TestUserBuilder().build();
+        const acceptUser = await new TestUserBuilder().build();
+        const testRequest = await new TestRequestBuilder().withCredits(50).create(creator.token);
+        await AdminTools.acceptRequest(testRequest.id, acceptUser.token);
+        const result = await request(app).post(`/request/finish?id=${testRequest.id}`).set("Cookie", creator.token).send();
+        expect(result.status).toBe(StatusCodes.OK);
+        const body = result.body;
+        expect(body).toHaveProperty("amount");
+        expect(body.amount).toBe(testRequest.credits)
+
+    })
 })
 
+describe("Nearby Requests", async () => {
+
+    it("Check for requests nearby that dont exist", async () => {
+        const user = await new TestUserBuilder().build();
+        const result = await request(app).get(`/request/nearby`).set("Cookie", user.token);
+        expect(result.status).toBe(StatusCodes.OK);
+        expect(result.body).toStrictEqual([]);
+
+    })
+    it("Check for requests nearby that do exist", async () => {
+        // Generating some requests
+        for(let i = 0; i < 5; i++) {
+            const tempUser = await new TestUserBuilder().withBalance(200).withPlz(faker.number.int({min: 74800, max: 74899})).build()
+            await new TestRequestBuilder().create(tempUser.token);
+        }
+        const user = await new TestUserBuilder().withPlz(74858).build();
+        const result = await request(app).get(`/request/nearby`).set("Cookie", user.token);
+        expect(result.status).toBe(StatusCodes.OK);
+        expect(result.body.length).toBe(5);
+    })
+    it("Check for requests that arent nearby but do exist", async () => {
+        for(let i = 0; i < 5; i++) {
+            const tempUser = await new TestUserBuilder().withBalance(200).withPlz(faker.number.int({min: 14800, max: 84899})).build()
+            await new TestRequestBuilder().create(tempUser.token);
+        }
+        const user = await new TestUserBuilder().withPlz(94500).build();
+        const result = await request(app).get(`/request/nearby`).set("Cookie", user.token);
+        expect(result.status).toBe(StatusCodes.OK);
+        expect(result.body.length).toBe(0)
+
+    })
+
+})

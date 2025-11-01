@@ -8,6 +8,7 @@ import UserRepository from "../repositories/UserRepository.js";
 import Service from "./Service.js";
 import type {UserModel} from "../types.js";
 import TransactionService from "./TransactionService.js";
+import type RequestService from "./RequestService.js";
 
 /**
  * @class UserService
@@ -27,6 +28,27 @@ class UserSerivce extends Service<UserRepository>{
     }
 
     private transactionService = new TransactionService();
+    private requestService: RequestService | undefined
+
+    public setRequestService(reqs: RequestService) {
+        this.requestService = reqs;
+    }
+
+    public async getInfoForUser(userId: string) {
+        const userData = await this.repository().getUserById(userId);
+        if(userData === undefined) return StatusCodes.NOT_FOUND;
+        const requestData = await this.requestService?.getRequestsForUser(userId);
+
+        if(requestData === undefined) return StatusCodes.INTERNAL_SERVER_ERROR;
+        if(requestData == StatusCodes.INTERNAL_SERVER_ERROR) return StatusCodes.INTERNAL_SERVER_ERROR;
+        const spendCredits = requestData.reduce((sum, request) => sum + request.credits, 0);
+        const userInfo: Record<string, any> = {
+            ...userData,
+            availableBalance: userData.balance - spendCredits
+        }
+        return userInfo;
+    }
+
 
     /**
      * Handles user logout process

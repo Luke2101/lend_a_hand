@@ -41,6 +41,7 @@ describe("Profile Tests", () => {
         expect(body.prename).toBe(update.prename);
         expect(body.surname).toBe(update.surname);
         expect(body.email).toBe(validtestUser.email)
+        expect(body).toHaveProperty("availableBalance")
     })
 })
 describe("Logout Tests", () => {

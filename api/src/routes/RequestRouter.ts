@@ -149,7 +149,7 @@ const router = express.Router();
  *       500:
  *         description: Internal server error while creating the request.
  */
-router.post("/", validateBody(createRequestSchema), RequestController.create as RequestHandler);
+router.post("/", validateBody(createRequestSchema), RequestController.create.bind(RequestController) as RequestHandler);
 
 /**
  * @swagger
@@ -202,7 +202,7 @@ router.post("/", validateBody(createRequestSchema), RequestController.create as 
  *                   example: ERROR_DURING_DELETION
  */
 
-router.delete("/", validateQuery(updateRequestQuerySchema), RequestController.delete as unknown as RequestHandler);
+router.delete("/", validateQuery(updateRequestQuerySchema), RequestController.delete.bind(RequestController) as unknown as RequestHandler);
 
 /**
  * @swagger
@@ -260,7 +260,7 @@ router.delete("/", validateQuery(updateRequestQuerySchema), RequestController.de
  *                   type: string
  *                   example: UNABLE_TO_UPDATE_REQUEST
  */
-router.patch("/", validateBody(updateReuqestSchema), validateQuery(updateRequestQuerySchema),RequestController.update as unknown as RequestHandler)
+router.patch("/", validateBody(updateReuqestSchema), validateQuery(updateRequestQuerySchema),RequestController.update.bind(RequestController) as unknown as RequestHandler)
 
 /**
  * @swagger
@@ -318,7 +318,7 @@ router.patch("/", validateBody(updateReuqestSchema), validateQuery(updateRequest
  *         description: Internal server error during acceptance.
  */
 
-router.patch("/accept", validateQuery(updateRequestQuerySchema), RequestController.accept as unknown as RequestHandler)
+router.patch("/accept", validateQuery(updateRequestQuerySchema), RequestController.accept.bind(RequestController) as unknown as RequestHandler)
 
 /**
  * @swagger
@@ -357,7 +357,7 @@ router.patch("/accept", validateQuery(updateRequestQuerySchema), RequestControll
  *         description: Internal server error while retrieving the request.
  */
 
-router.get("/", validateQuery(updateRequestQuerySchema), RequestController.get as unknown as RequestHandler)
+router.get("/", validateQuery(updateRequestQuerySchema), RequestController.get.bind(RequestController) as unknown as RequestHandler)
 
 /**
  * @swagger
@@ -382,7 +382,7 @@ router.get("/", validateQuery(updateRequestQuerySchema), RequestController.get a
  *         description: Internal server error while retrieving nearby requests.
  */
 
-router.get("/nearby", RequestController.nearby as unknown as RequestHandler)
+router.get("/nearby", RequestController.nearby.bind(RequestController) as unknown as RequestHandler)
 
 /**
  * @swagger
@@ -460,8 +460,8 @@ router.get("/nearby", RequestController.nearby as unknown as RequestHandler)
  *                   type: string
  *                   example: "INTERNAL_SERVER_ERROR"
  */
-router.get("/self", RequestController.self as RequestHandler)
+router.get("/self", RequestController.self.bind(RequestController) as RequestHandler)
 
 
-router.post("/finish", validateQuery(updateRequestQuerySchema), RequestController.finish as unknown as RequestHandler)
+router.post("/finish", validateQuery(updateRequestQuerySchema), RequestController.finish.bind(RequestController) as unknown as RequestHandler)
 export default router;

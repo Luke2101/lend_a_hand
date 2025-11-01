@@ -48,6 +48,14 @@ class AdminTools {
         return result.body;
     }
 
+    public static async acceptRequest(requestId: number, token: string[]) {
+        const result = await request(app).patch(`/request/accept?id=${requestId}`).set("Cookie",token).send()
+        if(!result.ok) {
+            throw new TestingError(`Unable to accept request with id=${requestId} status=${result.status}`)
+        }
+        return result.body;
+    }
+
 }
 
 export default AdminTools;

@@ -38,7 +38,7 @@ const router = express.Router();
  *               type: string
  *               example: INTERNAL_SERVER_ERROR
  */
-router.get("/", FavouriteController.get as RequestHandler);
+router.get("/", FavouriteController.get.bind(FavouriteController) as RequestHandler);
 
 /**
  * @swagger
@@ -106,6 +106,6 @@ router.post(
  *       500:
  *         description: Internal server error
  */
-router.delete("/", validateQuery(updateRequestQuerySchema), FavouriteController.remove as unknown as RequestHandler);
+router.delete("/", validateQuery(updateRequestQuerySchema), FavouriteController.remove.bind(FavouriteController) as unknown as RequestHandler);
 
 export default router;

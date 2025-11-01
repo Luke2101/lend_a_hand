@@ -24,6 +24,11 @@ export class TestUserBuilder {
         return this;
     }
 
+    withPlz(plz: number): this {
+        this.user.plz =plz;
+        return this;
+    }
+
     /**
      * Actually creates the user and applies the options.
      */

@@ -3,10 +3,15 @@ import type {Response} from "express";
 import FavouriteService from "../services/FavouriteService.js";
 import {StatusCodes} from "http-status-codes";
 import type {IdParam} from "../schemas/requestSchemas.js";
+import UserService from "../services/UserService.js";
 
 class FavouriteController {
 
-    private static favouriteService = new FavouriteService();
+    private static favouriteService:FavouriteService;
+
+    public static setFavouriteService(fs: FavouriteService){
+        FavouriteController.favouriteService = fs;
+    }
 
 
     /**

@@ -5,14 +5,16 @@ import Service from "./Service.js";
 
 class FavouriteService extends Service<FavouriteRepository>{
 
-    private readonly requestService: RequestService
+    private requestService: RequestService | undefined
 
     constructor() {
         super(new FavouriteRepository())
         this.requestService = new RequestService();
     }
 
-
+    public setRequestServie(reqs: RequestService) {
+        this.requestService = reqs;
+    }
     public async getInterestsForUser(userId: string) {
         const result = await this.repository().getInterestsForUserById(userId);
         if(result === undefined) return StatusCodes.INTERNAL_SERVER_ERROR;
@@ -20,7 +22,8 @@ class FavouriteService extends Service<FavouriteRepository>{
     }
 
     public async addInterest(userId: string, requestId: number) {
-        const request = await this.requestService.getRequest(requestId)
+        const request = await this.requestService?.getRequest(requestId)
+        if(request === undefined) return StatusCodes.INTERNAL_SERVER_ERROR;
         if(request == StatusCodes.NOT_FOUND) return request;
         if(request == StatusCodes.INTERNAL_SERVER_ERROR) return request;
         if(request.creator == userId) return StatusCodes.FORBIDDEN;

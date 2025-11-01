@@ -3,6 +3,7 @@ import RequestService from "../services/RequestService.js";
 import type {Request, Response} from "express";
 import type {CreateRequestBody, IdParam} from "../schemas/requestSchemas.js";
 import type {AuthenticatedRequest} from "../types.js";
+import UserService from "../services/UserService.js";
 
 /**
  * @class RequestController
@@ -13,7 +14,11 @@ import type {AuthenticatedRequest} from "../types.js";
  */
 class RequestController {
 
-    private static requestService = new RequestService();
+    private static requestService:RequestService;
+
+    public static setRequestService(reqs: RequestService){
+        RequestController.requestService = reqs;
+    }
 
     /**
      * Creates a new service request
