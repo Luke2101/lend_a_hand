@@ -4,8 +4,9 @@ export interface Request {
     category: string;
     credits: number;
     description: string | null;
-    image?: string;
-    status: 'pending' | 'accepted' | 'closed';
+    creator?: string;
+    accepted_by: string | null;
     from?: string;
     to?: string;
+    prename?: string;
 }

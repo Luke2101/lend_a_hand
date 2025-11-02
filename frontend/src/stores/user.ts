@@ -16,6 +16,8 @@ export interface UserInfo {
     houseNumber: string;
     plz: number;
     city: string;
+    balance: number;
+    availableBalance: number;
 }
 
 export const useUserStore = defineStore('user', () => {
@@ -60,7 +62,7 @@ export const useUserStore = defineStore('user', () => {
         }
     }
 
-    function updateUserInfoLocally({ firstName, surname, street, houseNumber, plz, city }: { firstName: string, surname: string, street: string, houseNumber: string, plz: number, city: string }) {
+    function updateUserInfoLocally({ firstName, surname, street, houseNumber, plz, city, balance, availableBalance }: { firstName: string, surname: string, street: string, houseNumber: string, plz: number, city: string, balance: number, availableBalance: number }) {
         if (userInfo.value) {
             userInfo.value.prename = firstName;
             userInfo.value.surname = surname;
@@ -68,6 +70,8 @@ export const useUserStore = defineStore('user', () => {
             userInfo.value.houseNumber = houseNumber;
             userInfo.value.plz = plz;
             userInfo.value.city = city;
+            userInfo.value.balance = balance
+            userInfo.value.availableBalance = availableBalance
         }
     }
 

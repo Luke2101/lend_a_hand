@@ -3,10 +3,16 @@ import Tag from 'primevue/tag';
 import Button from 'primevue/button';
 
 import type { Request } from '@/types/Request.interface';
+import { ref, onMounted } from 'vue';
 
 import rent from '@/assets/rent.jpeg';
 import help from '@/assets/help.jpg';
 import giveaway from '@/assets/giveaway.jpeg';
+
+interface UserInfo {
+  prename: string;
+  email: string;
+}
 
 const props = defineProps<{
   request: Request;
@@ -20,22 +26,58 @@ const props = defineProps<{
 }>();
 
 const images = { rent, help, giveaway };
+
+const acceptedByUser = ref<UserInfo | null>(null);
+
+const fetchAcceptedBy = async (userId: string) => {
+  try {
+    const response = await fetch(`http://localhost:8080/user?id=${userId}`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (response.ok) {
+      acceptedByUser.value = await response.json() as UserInfo;
+    } else {
+      console.error('Fehler beim Laden der User-Daten für accepted_by:', await response.json());
+    }
+  } catch (error) {
+    console.error('Netzwerkfehler beim Laden der User-Daten:', error);
+  }
+};
+
+onMounted(() => {
+  if (props.request.accepted_by) {
+    fetchAcceptedBy(props.request.accepted_by);
+  }
+});
 </script>
 
 <template>
-  <div class="border border-surface-200 dark:border-surface-700 rounded m-2 p-4 min-h-[26rem] flex flex-col justify-between">
-    <div class="mb-4">
+  <div class="border border-surface-200 dark:border-surface-700 rounded m-2 p-4 min-h-[28rem] flex flex-col justify-between">
+    <div class="mb-2">
       <div class="relative mx-auto">
         <img :src="images[request.category]" :alt="request.category" class="w-full h-48 rounded object-cover"/>
         <Tag :value="getCategoryName(request.category)" :severity="getSeverity(request.category)" class="absolute" style="left:5px; top: 5px"/>
       </div>
     </div>
 
-    <div class="mb-2 font-bold">{{ request.title }}</div>
+    <Tag
+        v-if="request.accepted_by && acceptedByUser"
+        icon="pi pi-check" :value="acceptedByUser.prename"
+        v-tooltip.bottom="'Anfrage wurde von ' + acceptedByUser.prename + ' (' + acceptedByUser.email +') angenommen.'"
+        severity="success"
+    />
+    <div class="mb-2 mt-2 font-bold">{{ request.title }}</div>
+    <div v-if="!props.ownRequests">
+      <i class="pi pi-user mr-2 mb-2"/>
+      {{ request.prename }}
+    </div>
     <div v-if="request.from && request.to" class="text-sm text-surface-500 dark:text-surface-400 mb-2">
       {{ formatDate(request.from) }} – {{ formatDate(request.to) }}
     </div>
-    <p class="text-sm text-surface-600 dark:text-surface-300 max-w-[22rem] line-clamp-2 mb-4 break-words">{{ request.description || 'Keine Beschreibung vorhanden.' }}</p>
+    <p class="text-sm text-surface-600 dark:text-surface-300 max-w-[22rem] line-clamp-2 mb-2 break-words">{{ request.description || 'Keine Beschreibung vorhanden.' }}</p>
 
     <div class="flex justify-between items-center mt-auto">
       <div class="mt-0 font-semibold text-xl flex items-center">

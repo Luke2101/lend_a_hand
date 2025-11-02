@@ -4,16 +4,22 @@ import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
 import Popover from 'primevue/popover';
 import Toast from 'primevue/toast';
+import ProgressBar from 'primevue/progressbar';
+import Menu from 'primevue/menu';
 
 import { ref, computed } from "vue";
 import { useAuth } from '@/composables/useAuth';
-import router from "@/router/index.js";
+import { useRouter } from 'vue-router';
 import {useToast} from "primevue/usetoast";
 import {useUserStore} from "@/stores/user";
 
 const toast = useToast();
 const userStore = useUserStore();
+const router = useRouter();
 const { isLoggedIn, setLoggedIn } = useAuth();
+
+const userPopUp = ref();
+const balancePopUp = ref();
 
 const avatarLabel = computed(() => {
   if (userStore.userInfo && userStore.userInfo.prename && userStore.userInfo.surname) {
@@ -24,7 +30,7 @@ const avatarLabel = computed(() => {
   return null;
 });
 
-const items = ref([
+const menuBarItems = ref([
   {
     label: 'Home',
     icon: 'pi pi-home',
@@ -37,10 +43,51 @@ const items = ref([
   }
 ]);
 
-const op = ref();
+const userMenuItems = ref([
+  {
+    label: 'Anfragen',
+    items: [
+      {
+        label: 'Eigene Anfragen',
+        icon: 'pi pi-user',
+        route: '/marketplace/own'
+      },
+      {
+        label: 'Favoriten',
+        icon: 'pi pi-heart',
+        route: '/marketplace/favorites'
+      },
+    ]
+  },
+  {
+    label: 'Profil',
+    items: [
+      {
+        label: 'Profil bearbeiten',
+        icon: 'pi pi-user-edit',
+        route: '/user'
+      },
+      {
+        label: 'Abmelden',
+        icon: 'pi pi-sign-out',
+        command: () => {
+          logout();
+          userPopUp.value.hide();
+        }
+      }
+    ]
+  },
+  {
+    separator: true
+  }
+]);
 
-const toggle = (event) => {
-  op.value.toggle(event);
+const avatarToggle = (event: MouseEvent) => {
+  userPopUp.value.toggle(event);
+}
+
+const balanceToggle = (event: MouseEvent) => {
+  balancePopUp.value.toggle(event);
 }
 
 async function logout() {
@@ -75,7 +122,7 @@ async function logout() {
 <template>
   <Toast/>
   <div class="card mt-4">
-    <Menubar :model="items">
+    <Menubar :model="menuBarItems">
       <template #start>
         <div class="app-logo"></div>
       </template>
@@ -114,22 +161,57 @@ async function logout() {
           </div>
           <div v-else>
             <template v-if="avatarLabel">
-              <Avatar :label="avatarLabel" shape="circle" class="avatar" @click="toggle" />
+              <Button
+                  :label="userStore.userInfo.balance ? userStore.userInfo.balance.toString() : '–'"
+                  size="small"
+                  severity="secondary"
+                  variant="outlined"
+                  icon="pi pi-crown"
+                  rounded
+                  class="mr-2"
+                  @click="balanceToggle"
+              />
+              <Popover ref="balancePopUp">
+                <div class="flex flex-col gap-4 w-50">
+                  <div v-if="userStore.userInfo" class="font-semibold">
+                    <i class="pi pi-crown mr-2"/>{{ userStore.userInfo.balance }} ({{ userStore.userInfo.availableBalance }} verfügbar)
+                  </div>
+                  <ProgressBar :value="userStore.userInfo.availableBalance/userStore.userInfo.balance*100"> {{ userStore.userInfo.availableBalance }}/{{ userStore.userInfo.balance }}</ProgressBar>
+                </div>
+              </Popover>
+              <Avatar :label="avatarLabel" shape="circle" class="avatar" @click="avatarToggle" />
             </template>
             <template v-else>
-              <Avatar icon="pi pi-user" shape="circle" class="avatar" @click="toggle" />
+              <Avatar icon="pi pi-user" shape="circle" class="avatar" @click="avatarToggle" />
             </template>
-            <Popover ref="op">
-              <div class="flex flex-col gap-4">
-                <div v-if="userStore.userInfo" class="font-semibold text-lg pb-2 border-b border-surface-200 dark:border-surface-700">
-                  {{ userStore.userInfo.prename }} {{ userStore.userInfo.surname }}
-                </div>
-                <router-link to="/user" custom v-slot="{ navigate }">
-                  <Button label="Bearbeiten" icon="pi pi-pen-to-square" severity="secondary" @click="navigate" />
+            <Menu ref="userPopUp" id="user_menu_overlay" :model="userMenuItems" :popup="true" class="w-full md:w-60">
+              <template #submenuheader="{ item }">
+                <span class="text-primary font-bold">{{ item.label }}</span>
+              </template>
+
+              <template #item="{ item, props }">
+                <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
+                  <a v-ripple :href="href" v-bind="props.action" @click="navigate">
+                    <span :class="item.icon"/>
+                    <span>{{ item.label }}</span>
+                  </a>
                 </router-link>
-                <Button label="Abmelden" icon="pi pi-sign-out" severity="danger" @click="logout" />
-              </div>
-            </Popover>
+                <a v-else v-ripple v-bind="props.action">
+                  <span :class="item.icon"/>
+                  <span>{{ item.label }}</span>
+                </a>
+              </template>
+
+              <template #end>
+                <button v-ripple class="relative overflow-hidden w-full border-0 bg-transparent flex items-center p-2 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-none cursor-pointer transition-colors duration-200">
+                  <Avatar :label="avatarLabel" class="mr-2" shape="circle" />
+                  <span class="inline-flex flex-col items-start">
+                        <span class="font-bold">{{ userStore.userInfo.prename }} {{ userStore.userInfo.surname }}</span>
+                        <span class="text-sm">{{ userStore.userInfo.email }}</span>
+                    </span>
+                </button>
+              </template>
+            </Menu>
           </div>
         </div>
       </template>
