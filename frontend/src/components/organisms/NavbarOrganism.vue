@@ -64,7 +64,7 @@ const userMenuItems = ref([
     items: [
       {
         label: 'Profil bearbeiten',
-        icon: 'pi pi-user-edit',
+        icon: 'pi pi-cog',
         route: '/user'
       },
       {

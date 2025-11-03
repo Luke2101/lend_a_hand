@@ -19,5 +19,4 @@ const visible = ref();
   <Divider align="left" type="horizontal"/>
   <TextAtom tag="h2" class="text-xl font-bold mt-4 mb-4">Anfragen deiner Nachbarn</TextAtom>
   <CarouselOrganism :ownRequests="false"/>
-  <div class="h-[5rem]"></div>
 </template>
