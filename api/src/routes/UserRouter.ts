@@ -221,6 +221,44 @@ router.patch("/", validateBody(updateSchema), UserController.update.bind(UserCon
  *                   example: "USER_NOT_FOUND"
  */
 router.get("/", validateQuery(idParamStringQuerySchema), UserController.get.bind(UserController) as unknown as RequestHandler)
+/**
+ * @swagger
+ * /user:
+ *   delete:
+ *     summary: Delete the authenticated user's account
+ *     description: >
+ *       Permanently deletes the account of the currently authenticated user.
+ *       This action cannot be undone and requires a valid authentication token.
+ *     tags:
+ *       - User
+ *     security:
+ *       - bearerAuth: []  # Requires a Bearer token (e.g., JWT)
+ *     responses:
+ *       200:
+ *         description: User account deleted successfully.
+ *       401:
+ *         description: Unauthorized — missing or invalid authentication token.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: UNAUTHORIZED
+ *       500:
+ *         description: Internal server error while attempting to delete the user.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: INTERNAL_SERVER_ERROR
+ */
+router.delete("/", UserController.delete.bind(UserController) as RequestHandler)
+
 
 /**
  * @swagger

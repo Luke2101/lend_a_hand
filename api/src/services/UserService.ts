@@ -116,6 +116,11 @@ class UserSerivce extends Service<UserRepository>{
         return this.repository().checkIfUserExists(userId)
     }
 
+    public async deleteUser(userId: string) {
+        const result = await this.repository().deleteUser(userId)
+        if(result) return StatusCodes.OK;
+        return StatusCodes.INTERNAL_SERVER_ERROR;
+    }
 }
 
 export default UserSerivce;

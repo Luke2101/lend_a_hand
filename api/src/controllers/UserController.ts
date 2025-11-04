@@ -81,6 +81,12 @@ class UserController {
         if(result == StatusCodes.NOT_FOUND) return res.status(StatusCodes.NOT_FOUND).send({message: "USER_NOT_FOUND"})
         return res.status(StatusCodes.OK).send(result);
     }
+
+    public static async delete(req: AuthenticatedRequest, res: Response) {
+        const result = await UserController.userService.deleteUser(req.user.id);
+        return res.status(result).send()
+
+    }
 }
 
 export default UserController;

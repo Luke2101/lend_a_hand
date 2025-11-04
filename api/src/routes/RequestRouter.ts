@@ -549,5 +549,62 @@ router.get("/self", RequestController.self.bind(RequestController) as RequestHan
  */
 router.post("/finish", validateQuery(updateRequestQuerySchema), RequestController.finish.bind(RequestController) as unknown as RequestHandler);
 
-router.get("/accepted", RequestController.accepted.bind(RequestController) as RequestHandler)
+/**
+ * @swagger
+ * /request/accepted:
+ *   get:
+ *     summary: Get all accepted requests for the authenticated user
+ *     description: >
+ *       Returns a list of requests that have been accepted by the currently authenticated user.
+ *       Requires authentication.
+ *     tags:
+ *       - Requests
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved the list of accepted requests.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     example: "req_12345"
+ *                   title:
+ *                     type: string
+ *                     example: "Math Tutoring Session"
+ *                   category:
+ *                     type: string
+ *                     example: "Education"
+ *                   credits:
+ *                     type: integer
+ *                     example: 20
+ *                   description:
+ *                     type: string
+ *                     example: "Provide 1-hour math tutoring for high school students."
+ *                   accepted_by:
+ *                     type: string
+ *                     example: "user_67890"
+ *                   from:
+ *                     type: string
+ *                     format: date-time
+ *                     example: "2025-10-15T10:00:00Z"
+ *                   to:
+ *                     type: string
+ *                     format: date-time
+ *                     example: "2025-10-15T11:00:00Z"
+ *                   prename:
+ *                     type: string
+ *                     example: "Alice"
+ *       401:
+ *         description: Unauthorized – Missing or invalid authentication token.
+ *       500:
+ *         description: Internal server error – Unable to retrieve accepted requests.
+ */
+router.get("/accepted", RequestController.accepted.bind(RequestController) as RequestHandler);
+
 export default router;

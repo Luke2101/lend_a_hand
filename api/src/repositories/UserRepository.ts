@@ -1,12 +1,14 @@
 import {auth, db} from "../lib/auth.js";
 import {user} from "../db/auth-schema.js";
-import {eq} from "drizzle-orm";
+import {and, eq, isNotNull, not} from "drizzle-orm";
 import type {SignUpBody} from "../schemas/authSchemas.js";
 import chalk from "chalk";
 import logger from "../util/logger.js";
 import type {UpdateUserBody} from "../schemas/userSchemas.js";
 import DatabaseError from "../errors/DatabaseError.js";
 import type {UserModel} from "../types.js";
+import {favouriteTable, requestTable} from "../db/tables.js";
+import {notNullish} from "@vitest/utils";
 
 /**
  * @class UserRepository
@@ -168,6 +170,21 @@ class UserRepository {
     public async getUserById(userId: string): Promise<UserModel | undefined> {
         const u = await db.select().from(user).where(eq(user.id,userId));
         return u[0];
+    }
+
+    public async deleteUser(userId: string) {
+        try {
+            await db.delete(user).where(eq(user.id, userId));
+            await db.delete(requestTable).where(eq(requestTable.creator, userId))
+            await db.update(requestTable).set({accepted_by: null}).where(eq(requestTable.accepted_by, userId))
+            await db.delete(favouriteTable).where(eq(favouriteTable.userId, userId))
+            return true;
+        }catch (err) {
+            logger.error(`Unable to delete user successfully!`)
+            logger.error(err);
+            return false;
+        }
+
     }
 }
 
