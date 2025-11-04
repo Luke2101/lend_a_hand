@@ -14,11 +14,12 @@ import ProgressBar from 'primevue/progressbar';
 import Message from "primevue/message";
 import InputTextMolecule from "@/components/molecules/InputTextMolecule.vue";
 import TextAtom from "@/components/atoms/TextAtom.vue";
-import ConfirmDialog from 'primevue/confirmdialog';
+import {useRouter} from "vue-router";
 
 const toast = useToast();
 const userStore = useUserStore();
 const confirm = useConfirm();
+const router = useRouter();
 
 const initialValues = computed(() => {
   if (!userStore.userInfo) return {};
@@ -44,27 +45,12 @@ const resolver = zodResolver(
     })
 );
 
-const hasChanges = (formValues: any) => {
-  if (!userStore.userInfo || !formValues) return false;
-
-  console.log(formValues);
-  console.log(userStore.userInfo);
-  return (
-      formValues.firstName !== userStore.userInfo.prename ||
-      formValues.surname !== userStore.userInfo.surname ||
-      formValues.street !== userStore.userInfo.street ||
-      formValues.houseNumber !== userStore.userInfo.houseNumber ||
-      formValues.zipCode !== String(userStore.userInfo.plz) ||
-      formValues.city !== userStore.userInfo.city
-  );
-};
-
 const confirmDeleteUser = () => {
   confirm.require({
+    group: 'dialog',
     message: 'Möchtest du dein Konto wirklich löschen?',
     header: 'Konto löschen',
     icon: 'pi pi-info-circle',
-    rejectLabel: 'Abbrechen',
     rejectProps: {
       label: 'Abbrechen',
       severity: 'secondary',
@@ -82,6 +68,7 @@ const confirmDeleteUser = () => {
         });
         if (response.ok) {
           toast.add({ severity: 'info', summary: 'Bestätigt', detail: 'Konto gelöscht', life: 3000 });
+          await router.push('/login');
         } else {
           const data = await response.json();
           toast.add({ severity: 'error', summary: 'Fehler', detail: data.message || 'Löschen fehlgeschlagen.', life: 5000 });
@@ -135,7 +122,6 @@ const onSubmit = async (e) => {
 </script>
 
 <template>
-  <ConfirmDialog/>
   <div class="card flex flex-col items-center justify-center">
     <Toast/>
     <TextAtom tag="h1" class="text-xl font-bold mt-4 mb-4">Benutzer-Einstellungen</TextAtom>

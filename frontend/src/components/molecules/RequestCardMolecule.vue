@@ -23,7 +23,8 @@ const props = defineProps<{
   isFavorite: (requestId: number) => boolean;
   toggleFavorite: (requestId: number) => Promise<void>;
   confirmDelete: (event: MouseEvent, requestId: number) => void;
-  acceptRequest: (requestId: number) => Promise<void>;
+  confirmAccept: (requestId: number) => void;
+  confirmFinish: (requestId: number) => void;
 }>();
 
 const images = { rent, help, giveaway };
@@ -64,7 +65,6 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- TODO: add click event -->
     <Button
         v-if="request.accepted_by && acceptedByUser"
         icon="pi pi-check" :label="acceptedByUser.prename"
@@ -72,6 +72,7 @@ onMounted(() => {
         severity="success"
         variant="outlined"
         size="small"
+        @click="confirmFinish(request.id)"
     />
     <div class="mb-1 mt-2 font-bold flex justify-between">
       {{ request.title }}
@@ -122,7 +123,7 @@ onMounted(() => {
               severity="success"
               v-tooltip="request.category === 'giveaway' ? 'Geschenk annehmen' : 'Auftrag annehmen'"
               class="ml-2"
-              @click="acceptRequest(request.id)"
+              @click="confirmAccept(request.id)"
           />
         </span>
     </div>

@@ -203,13 +203,13 @@ async function logout() {
               </template>
 
               <template #end>
-                <button v-ripple class="relative overflow-hidden w-full border-0 bg-transparent flex items-center p-2 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-none cursor-pointer transition-colors duration-200">
+                <div v-ripple class="relative overflow-hidden w-full border-0 bg-transparent ml-1 flex items-center p-2 rounded-none">
                   <Avatar :label="avatarLabel" class="mr-2" shape="circle" />
                   <span class="inline-flex flex-col items-start">
                         <span class="font-bold">{{ userStore.userInfo.prename }} {{ userStore.userInfo.surname }}</span>
                         <span class="text-sm">{{ userStore.userInfo.email }}</span>
                     </span>
-                </button>
+                </div>
               </template>
             </Menu>
           </div>

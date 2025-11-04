@@ -4,7 +4,6 @@ import {useConfirm} from "primevue";
 import { useToast } from "primevue/usetoast";
 
 import Carousel from 'primevue/carousel';
-import ConfirmPopup from 'primevue/confirmpopup';
 import ProgressSpinner from 'primevue/progressspinner';
 
 import type { Request } from '@/types/Request.interface';
@@ -139,6 +138,7 @@ const toggleFavorite = async (requestId: number) => {
 
 const confirmDelete = (event: MouseEvent, requestId: number) => {
   confirm.require({
+    group: 'popup',
     target: event.currentTarget as HTMLElement,
     message: 'Möchtest du die Anfrage löschen?',
     icon: 'pi pi-info-circle',
@@ -174,30 +174,91 @@ const confirmDelete = (event: MouseEvent, requestId: number) => {
   });
 };
 
-const acceptRequest = async (requestId: number) => {
-  if (props.ownRequests) {
-    console.error('FEHLER: Eigene Anfragen können nicht angenommen werden.');
-    return;
-  }
+const confirmAccept = (requestId: number) => {
+  confirm.require({
+    group: 'dialog',
+    header: 'Anfrage annehmen',
+    message: 'Durch das Annehmen der Anfrage wird dein Vorname und deine Email mit dem Ersteller geteilt.',
+    icon: 'pi pi-info-circle',
+    rejectProps: {
+      label: 'Abbrechen',
+      severity: 'secondary',
+      icon: 'pi pi-times',
+      outlined: true,
+      size: 'small',
+    },
+    acceptProps: {
+      label: 'Annehmen',
+      icon: 'pi pi-check',
+      size: 'small',
+    },
+    accept: async() => {
+      if (props.ownRequests) {
+        console.error('FEHLER: Eigene Anfragen können nicht angenommen werden.');
+        return;
+      }
 
-  try {
-    const response = await fetch(`http://localhost:8080/request/accept?id=${requestId}`, {
-      method: 'PATCH',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-    });
+      try {
+        const response = await fetch(`http://localhost:8080/request/accept?id=${requestId}`, {
+          method: 'PATCH',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+        });
 
-    if (response.ok) {
-      const result = await response.json();
-      console.log('Anfrage erfolgreich angenommen:', result);
-    } else {
-      const errorData = await response.json();
-      console.error('Fehler beim Annehmen der Anfrage:', errorData.message);
-      toast.add({ severity: 'error', summary: 'Fehler', detail: errorData.message || 'Löschen fehlgeschlagen.', life: 5000 });
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Anfrage erfolgreich angenommen:', result);
+        } else {
+          const errorData = await response.json();
+          console.error('Fehler beim Annehmen der Anfrage:', errorData.message);
+          toast.add({ severity: 'error', summary: 'Fehler', detail: errorData.message || 'Annehmen fehlgeschlagen.', life: 5000 });
+        }
+      } catch (error) {
+        console.error('Netzwerkfehler beim Annehmen der Anfrage:', error);
+      }
     }
-  } catch (error) {
-    console.error('Netzwerkfehler beim Annehmen der Anfrage:', error);
-  }
+  });
+};
+
+const confirmFinish = (requestId: number) => {
+  confirm.require({
+    group: 'dialog',
+    header: 'Auftrag abschließen',
+    message: 'Durch das abschließen der Anfrage bekommt der Helfer seine Kronen und die Anfrage wird gelöscht.',
+    icon: 'pi pi-info-circle',
+    rejectProps: {
+      label: 'Abbrechen',
+      severity: 'secondary',
+      icon: 'pi pi-times',
+      outlined: true,
+      size: 'small',
+    },
+    acceptProps: {
+      label: 'Abschließen',
+      icon: 'pi pi-check',
+      size: 'small',
+    },
+    accept: async() => {
+      try {
+        const response = await fetch(`http://localhost:8080/request/finish?id=${requestId}`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Anfrage erfolgreich abgeschlossen:', result);
+        } else {
+          const errorData = await response.json();
+          console.error('Fehler beim Abschliessen der Anfrage:', errorData.message);
+          toast.add({ severity: 'error', summary: 'Fehler', detail: errorData.message || 'Abschließen fehlgeschlagen.', life: 5000 });
+        }
+      } catch (error) {
+        console.error('Netzwerkfehler beim Abschließen der Anfrage:', error);
+      }
+    }
+  });
 };
 
 const formatDate = (iso: string | undefined) => {
@@ -241,7 +302,6 @@ const responsiveOptions: ResponsiveOption[] = [
 </script>
 
 <template>
-  <ConfirmPopup/>
   <div class="card">
     <div v-if="requestsLoading" class="flex justify-center items-center h-40">
       <ProgressSpinner/>
@@ -259,7 +319,8 @@ const responsiveOptions: ResponsiveOption[] = [
               :is-favorite="isFavorite"
               :toggle-favorite="toggleFavorite"
               :confirm-delete="confirmDelete"
-              :accept-request="acceptRequest"
+              :confirm-accept="confirmAccept"
+              :confirm-finish="confirmFinish"
           />
         </template>
       </Carousel>
