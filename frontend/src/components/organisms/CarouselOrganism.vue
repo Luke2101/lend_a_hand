@@ -174,6 +174,32 @@ const confirmDelete = (event: MouseEvent, requestId: number) => {
   });
 };
 
+const acceptRequest = async (requestId: number) => {
+  if (props.ownRequests) {
+    console.error('FEHLER: Eigene Anfragen können nicht angenommen werden.');
+    return;
+  }
+
+  try {
+    const response = await fetch(`http://localhost:8080/request/accept?id=${requestId}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      console.log('Anfrage erfolgreich angenommen:', result);
+    } else {
+      const errorData = await response.json();
+      console.error('Fehler beim Annehmen der Anfrage:', errorData.message);
+      toast.add({ severity: 'error', summary: 'Fehler', detail: errorData.message || 'Löschen fehlgeschlagen.', life: 5000 });
+    }
+  } catch (error) {
+    console.error('Netzwerkfehler beim Annehmen der Anfrage:', error);
+  }
+};
+
 const formatDate = (iso: string | undefined) => {
   if (!iso) return '-';
   const d = new Date(iso);
@@ -233,6 +259,7 @@ const responsiveOptions: ResponsiveOption[] = [
               :is-favorite="isFavorite"
               :toggle-favorite="toggleFavorite"
               :confirm-delete="confirmDelete"
+              :accept-request="acceptRequest"
           />
         </template>
       </Carousel>

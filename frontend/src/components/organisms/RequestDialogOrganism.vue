@@ -18,6 +18,7 @@ import FloatLabel from "primevue/floatlabel";
 import DatePicker from "primevue/datepicker"
 import {useToast} from "primevue/usetoast";
 import Message from "primevue/message";
+import {useUserStore} from "@/stores/user";
 
 interface Category {
   name: string;
@@ -120,6 +121,8 @@ const resolver = zodResolver(formSchema as ZodType<FormValues>);
 
 const toast = useToast();
 
+const userStore = useUserStore();
+
 const toIsoString = (date: Date | null | undefined): string | null => {
   if (!date) return null;
   return date.toISOString().replace(/\.\d{3}Z$/, 'Z');
@@ -144,6 +147,12 @@ const onSubmit = async (event: FormSubmitEvent<FormValues>) => {
     to: toIsoString(values.endDate),
   };
 
+  if (values.category.code === 'giveaway') {
+    payload.from = null;
+    payload.to = null;
+    payload.credits = 0;
+  }
+
   try {
     const response = await fetch('http://localhost:8080/request', {
       method: 'POST',
@@ -163,6 +172,14 @@ const onSubmit = async (event: FormSubmitEvent<FormValues>) => {
         severity: 'warn',
         summary: 'Limit erreicht',
         detail: 'Sie haben das maximale Limit an ausstehenden Anfragen (5) erreicht.',
+        life: 5000
+      });
+      console.error('API-Fehler (403):', data.message);
+    } else if (response.status === 402) {
+      toast.add({
+        severity: 'warn',
+        summary: 'zu wenig verfügbares Guthaben',
+        detail: 'Ihr verfügbares Guthaben ist nicht ausreichend für diese Anfrage.',
         life: 5000
       });
       console.error('API-Fehler (403):', data.message);
@@ -221,9 +238,9 @@ const onSubmit = async (event: FormSubmitEvent<FormValues>) => {
                   inputId="credits"
                   showButtons
                   :min="1"
-                  :max="100"
+                  :max="userStore.userInfo.availableBalance"
                   fluid
-                  :modelValue="form.category?.value?.code === 'giveaway' ? null : form.credits?.value"
+                  :modelValue="form.category?.value?.code === 'giveaway' ? 0 : form.credits?.value"
                   :disabled="form.category?.value?.code === 'giveaway'"
               />
               <label for="credits">Belohnungspunkte</label>

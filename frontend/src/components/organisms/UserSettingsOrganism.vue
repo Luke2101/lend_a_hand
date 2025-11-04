@@ -4,6 +4,7 @@ import { useUserStore } from '@/stores/user';
 import { z } from 'zod';
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import { useToast } from 'primevue/usetoast';
+import {useConfirm} from "primevue";
 
 import Form from '@primevue/forms/form';
 import Button from 'primevue/button';
@@ -13,9 +14,11 @@ import ProgressBar from 'primevue/progressbar';
 import Message from "primevue/message";
 import InputTextMolecule from "@/components/molecules/InputTextMolecule.vue";
 import TextAtom from "@/components/atoms/TextAtom.vue";
+import ConfirmDialog from 'primevue/confirmdialog';
 
 const toast = useToast();
 const userStore = useUserStore();
+const confirm = useConfirm();
 
 const initialValues = computed(() => {
   if (!userStore.userInfo) return {};
@@ -40,6 +43,55 @@ const resolver = zodResolver(
       city: z.string().min(2, { message: 'Ort ist erforderlich.' }),
     })
 );
+
+const hasChanges = (formValues: any) => {
+  if (!userStore.userInfo || !formValues) return false;
+
+  console.log(formValues);
+  console.log(userStore.userInfo);
+  return (
+      formValues.firstName !== userStore.userInfo.prename ||
+      formValues.surname !== userStore.userInfo.surname ||
+      formValues.street !== userStore.userInfo.street ||
+      formValues.houseNumber !== userStore.userInfo.houseNumber ||
+      formValues.zipCode !== String(userStore.userInfo.plz) ||
+      formValues.city !== userStore.userInfo.city
+  );
+};
+
+const confirmDeleteUser = () => {
+  confirm.require({
+    message: 'Möchtest du dein Konto wirklich löschen?',
+    header: 'Konto löschen',
+    icon: 'pi pi-info-circle',
+    rejectLabel: 'Abbrechen',
+    rejectProps: {
+      label: 'Abbrechen',
+      severity: 'secondary',
+      outlined: true
+    },
+    acceptProps: {
+      label: 'Löschen',
+      severity: 'danger'
+    },
+    accept: async() => {
+      try {
+        const response = await fetch(`http://localhost:8080/user`, {
+          method: 'DELETE',
+          credentials: 'include'
+        });
+        if (response.ok) {
+          toast.add({ severity: 'info', summary: 'Bestätigt', detail: 'Konto gelöscht', life: 3000 });
+        } else {
+          const data = await response.json();
+          toast.add({ severity: 'error', summary: 'Fehler', detail: data.message || 'Löschen fehlgeschlagen.', life: 5000 });
+        }
+      } catch (error) {
+        toast.add({ severity: 'error', summary: 'Netzwerkfehler', detail: 'Verbindung zum Server fehlgeschlagen.', life: 5000 });
+      }
+    }
+  });
+};
 
 const onSubmit = async (e) => {
   if (!e.valid) return;
@@ -83,6 +135,7 @@ const onSubmit = async (e) => {
 </script>
 
 <template>
+  <ConfirmDialog/>
   <div class="card flex flex-col items-center justify-center">
     <Toast/>
     <TextAtom tag="h1" class="text-xl font-bold mt-4 mb-4">Benutzer-Einstellungen</TextAtom>
@@ -116,6 +169,10 @@ const onSubmit = async (e) => {
         <InputTextMolecule :form="$form" name="city" label="Ort" type="text" icon="pi pi-globe"/>
         <Button type="submit" label="Daten ändern" />
       </Form>
+
+      <Divider align="center" type="horizontal" class="my-5"/>
+
+      <Button icon="pi pi-trash" label="Konto löschen" severity="danger" class="w-full"  @click="confirmDeleteUser()"/>
     </div>
 
     <div v-else-if="userStore.hasError" class="mt-4">

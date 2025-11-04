@@ -16,6 +16,8 @@ export interface UserInfo {
     houseNumber: string;
     plz: number;
     city: string;
+    balance: number;
+    availableBalance: number;
 }
 
 export const useUserStore = defineStore('user', () => {
