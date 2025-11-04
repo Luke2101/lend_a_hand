@@ -102,17 +102,22 @@ class RequestService extends Service<RequestRepository>{
 
     /**
      * Retrieves a specific request by ID
-     * @param {number} requestId - ID of the request to retrieve
      * @returns {Promise<Object|StatusCodes>} Request object or status code
      *
      * @throws {404} NOT_FOUND - When request doesn't exist
      * @throws {500} INTERNAL_SERVER_ERROR - When retrieval fails
+     * @param requestIds
      */
-    public async getRequest(requestId: number){
-        const originalRequest = await this.repository().getRequestById(requestId);
-        if(originalRequest === undefined)        return StatusCodes.INTERNAL_SERVER_ERROR;
-        if(originalRequest === null)             return StatusCodes.NOT_FOUND;
-        return originalRequest;
+    public async getRequest(requestIds: number[]){
+        const result = [];
+        for(const requestId of requestIds) {
+            const originalRequest = await this.repository().getRequestById(requestId);
+            if (originalRequest === undefined) return StatusCodes.INTERNAL_SERVER_ERROR;
+            if (originalRequest === null) return StatusCodes.NOT_FOUND;
+            result.push(originalRequest)
+        }
+
+        return result;
     }
 
     /**
@@ -189,11 +194,13 @@ class RequestService extends Service<RequestRepository>{
             return StatusCodes.FORBIDDEN;
         }
 
-        const request = await this.getRequest(requestId);
-        if(typeof(request) == "number") {
-            logger.debug(`Unable to finish request because it could not be found, code=${request}`)
+        const requestResponse = await this.getRequest([requestId]);
+        if(typeof(requestResponse) == "number") {
+            logger.debug(`Unable to finish request because it could not be found, code=${requestResponse}`)
             return StatusCodes.NOT_FOUND;
         }
+        const request = requestResponse[0];
+        if(request === undefined) return StatusCodes.NOT_FOUND;
 
         const recipient = request.accepted_by;
         if(!recipient) {

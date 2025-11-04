@@ -1,6 +1,11 @@
 import express, {type RequestHandler} from "express";
 import {validateBody, validateQuery} from "../middleware/validate.js";
-import {createRequestSchema, updateRequestQuerySchema, updateReuqestSchema} from "../schemas/requestSchemas.js";
+import {
+    createRequestSchema,
+    idArrayQuerySchema,
+    updateRequestQuerySchema,
+    updateReuqestSchema
+} from "../schemas/requestSchemas.js";
 import RequestController from "../controllers/RequestController.js";
 
 const router = express.Router();
@@ -90,10 +95,6 @@ const router = express.Router();
  *           type: string
  *           format: date-time
  *           example: "2025-10-28T12:00:00Z"
- *         creator:
- *           type: string
- *           description: UUID of the user who created the request.
- *           example: "2a1b3c4d-5678-9012-cdef-3456789abcde"
  *         prename:
  *           type: string
  *           description: Name of issuer of this request
@@ -357,7 +358,7 @@ router.patch("/accept", validateQuery(updateRequestQuerySchema), RequestControll
  *         description: Internal server error while retrieving the request.
  */
 
-router.get("/", validateQuery(updateRequestQuerySchema), RequestController.get.bind(RequestController) as unknown as RequestHandler)
+router.get("/", validateBody(idArrayQuerySchema), RequestController.get.bind(RequestController) as unknown as RequestHandler)
 
 /**
  * @swagger
@@ -459,5 +460,93 @@ router.get("/nearby", RequestController.nearby.bind(RequestController) as unknow
 router.get("/self", RequestController.self.bind(RequestController) as RequestHandler)
 
 
-router.post("/finish", validateQuery(updateRequestQuerySchema), RequestController.finish.bind(RequestController) as unknown as RequestHandler)
+/**
+ * @openapi
+ * /request/finish:
+ *   post:
+ *     summary: Finish a request created by the authenticated user
+ *     description: >
+ *       Marks a request as finished and performs a credit transfer between the creator and the accepted user.
+ *       The authenticated user must be the original creator of the request.
+ *     tags:
+ *       - Requests
+ *     security:
+ *       - bearerAuth: []          # assuming JWT or similar auth
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         required: true
+ *         description: The ID of the request to finish.
+ *     responses:
+ *       200:
+ *         description: Request successfully finished and credits transferred.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 from:
+ *                   type: string
+ *                   description: ID of the user who created (and finished) the request.
+ *                   example: "user_123"
+ *                 to:
+ *                   type: string
+ *                   description: ID of the user who accepted the request.
+ *                   example: "user_456"
+ *                 amount:
+ *                   type: number
+ *                   description: The number of credits transferred.
+ *                   example: 50
+ *       400:
+ *         description: Invalid query parameters.
+ *       401:
+ *         description: Unauthorized – missing or invalid authentication token.
+ *       403:
+ *         description: The authenticated user is not the creator of this request.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: CREATOR_TOKEN_MISMATCH
+ *       404:
+ *         description: The request does not exist.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: REQUEST_DOES_NOT_EXIST
+ *       409:
+ *         description: The request has not been accepted yet.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: REQUEST_NOT_ACCEPTED
+ *       402:
+ *         description: Insufficient balance for credit transfer.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: INSUFFICIENT_BALANCE
+ *       500:
+ *         description: Internal server error.
+ */
+router.post("/finish", validateQuery(updateRequestQuerySchema), RequestController.finish.bind(RequestController) as unknown as RequestHandler);
+
 export default router;

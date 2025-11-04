@@ -1,7 +1,7 @@
 import {StatusCodes} from "http-status-codes";
 import RequestService from "../services/RequestService.js";
 import type {Request, Response} from "express";
-import type {CreateRequestBody, IdParam} from "../schemas/requestSchemas.js";
+import type {CreateRequestBody, IdArrayBody, IdParam} from "../schemas/requestSchemas.js";
 import type {AuthenticatedRequest} from "../types.js";
 import UserService from "../services/UserService.js";
 
@@ -121,8 +121,8 @@ class RequestController {
      * @example
      * // GET /api/requests?id=123
      */
-    public static async get(req: Request<{},{}, {},IdParam>, res: Response) {
-        const result = await RequestController.requestService.getRequest(req.query.id)
+    public static async get(req: Request<{},{}, IdArrayBody>, res: Response) {
+        const result = await RequestController.requestService.getRequest(req.body)
         if(result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
         if(result == StatusCodes.NOT_FOUND) return res.status(StatusCodes.NOT_FOUND).send({message: "REQUEST_NOT_FOUND"})
         return res.status(StatusCodes.OK).send(result);

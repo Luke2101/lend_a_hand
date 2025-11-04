@@ -22,7 +22,7 @@ class FavouriteService extends Service<FavouriteRepository>{
     }
 
     public async addInterest(userId: string, requestId: number) {
-        const request = await this.requestService?.getRequest(requestId)
+        const request = await this.requestService?.getRequest([requestId])
         if(request === undefined) return StatusCodes.INTERNAL_SERVER_ERROR;
         if(request == StatusCodes.NOT_FOUND) return request;
         if(request == StatusCodes.INTERNAL_SERVER_ERROR) return request;

@@ -12,11 +12,13 @@ import RequestController from "./controllers/RequestController.js";
 import FavouriteController from "./controllers/FavouriteController.js";
 import UserService from "./services/UserService.js";
 import RequestService from "./services/RequestService.js";
-import requestService from "./services/RequestService.js";
 import FavouriteService from "./services/FavouriteService.js";
 
 export const app = express();
 export const port = "8080";
+
+
+
 
 
 

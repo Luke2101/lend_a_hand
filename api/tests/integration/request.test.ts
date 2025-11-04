@@ -50,18 +50,18 @@ describe("Get Request", async () => {
 
     it("Get Request with invalid id", async () => {
         const user = await new TestUserBuilder().withBalance(100).build();
-        const result = await request(app).get(`/request?id=${90}`).set("Cookie", user.token);
+        const result = await request(app).get(`/request`).set("Cookie", user.token).send([40]);
         expect(result.status).toBe(StatusCodes.NOT_FOUND)
     })
 
     it("Get Request with valid id", async () => {
         const user = await new TestUserBuilder().withBalance(100).build();
         const {id} = await new TestRequestBuilder().create(user.token);
-        const result = await request(app).get(`/request?id=${id}`).set("Cookie", user.token);
+        const result = await request(app).get(`/request`).set("Cookie", user.token).send([id]);
         expect(result.status).toBe(StatusCodes.OK)
-        expect(result.body).toHaveProperty("id")
-        expect(result.body).not.toHaveProperty("creator")
-        expect(result.body).toHaveProperty("credits")
+        expect(result.body[0]).toHaveProperty("id")
+        expect(result.body[0]).not.toHaveProperty("creator")
+        expect(result.body[0]).toHaveProperty("credits")
     })
 
     it("Get own requests that dont exist" , async () => {
