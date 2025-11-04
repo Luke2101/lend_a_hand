@@ -173,6 +173,12 @@ class RequestController {
         return res.status(StatusCodes.OK).send(result);
     }
 
+    public static async accepted(req: AuthenticatedRequest, res: Response) {
+        const result = await RequestController.requestService.getAcceptedRequests(req.user.id);
+        if(result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
+        return res.status(StatusCodes.OK).send(result);
+    }
+
 
 }
 

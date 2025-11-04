@@ -132,6 +132,32 @@ class RequestRepository {
             return undefined;
         }
     }
+
+    public async getAcceptedRequestsForUser(userId: string) {
+        try {
+
+            const result = await db.select({
+                id:requestTable.id,
+                title: requestTable.title,
+                category: requestTable.category,
+                credits: requestTable.credits,
+                description: requestTable.description,
+                accepted_by: requestTable.accepted_by,
+                from: requestTable.from,
+                to: requestTable.to,
+                prename: user.prename
+            }).from(requestTable)
+                .innerJoin(user, eq(requestTable.creator, user.id))
+                .where(eq(requestTable.accepted_by, userId))
+
+            logger.debug(`Found ${result.length} requests that were accepted by user=${userId}`)
+            return result;
+        }catch (err) {
+            logger.error(`Unable to get acceptedBy requests for userId=${userId}`)
+            return undefined;
+        }
+
+    }
 }
 
 export default RequestRepository;

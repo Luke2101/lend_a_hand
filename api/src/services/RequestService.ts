@@ -224,5 +224,11 @@ class RequestService extends Service<RequestRepository>{
             amount: request.credits
         };
     }
+
+    public async getAcceptedRequests(userId: string) {
+        const result = await this.repository().getAcceptedRequestsForUser(userId)
+        if(result === undefined) return StatusCodes.INTERNAL_SERVER_ERROR;
+        return result;
+    }
 }
 export default RequestService;

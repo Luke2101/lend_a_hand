@@ -549,4 +549,5 @@ router.get("/self", RequestController.self.bind(RequestController) as RequestHan
  */
 router.post("/finish", validateQuery(updateRequestQuerySchema), RequestController.finish.bind(RequestController) as unknown as RequestHandler);
 
+router.get("/accepted", RequestController.accepted.bind(RequestController) as RequestHandler)
 export default router;
