@@ -4,9 +4,10 @@ export interface Request {
     category: string;
     credits: number;
     description: string | null;
-    creator?: string;
     accepted_by: string | null;
     from?: string;
     to?: string;
+    city: string;
+    plz: number;
     prename?: string;
 }

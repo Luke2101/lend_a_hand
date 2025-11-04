@@ -73,18 +73,21 @@ onMounted(() => {
         variant="outlined"
         size="small"
     />
-    <div class="mb-2 mt-2 font-bold">{{ request.title }}</div>
+    <div class="mb-1 mt-2 font-bold flex justify-between">
+      {{ request.title }}
+      <Tag v-if="!props.ownRequests" icon="pi pi-map-marker" v-tooltip.bottom="request.city" :value="request.plz" class="ml-2"/>
+    </div>
     <div v-if="!props.ownRequests">
       <i class="pi pi-user mr-2 mb-2"/>
       {{ request.prename }}
     </div>
-    <div v-if="request.from && request.to" class="text-sm text-surface-500 dark:text-surface-400 mb-2">
+    <div v-if="request.from && request.to" class="text-sm text-surface-500 dark:text-surface-400 mb-1">
       {{ formatDate(request.from) }} – {{ formatDate(request.to) }}
     </div>
     <p class="text-sm text-surface-600 dark:text-surface-300 max-w-[22rem] line-clamp-2 mb-2 break-words">{{ request.description || 'Keine Beschreibung vorhanden.' }}</p>
 
     <div class="flex justify-between items-center mt-auto">
-      <div class="mt-0 font-semibold text-xl flex items-center">
+      <div class="mt-0 font-semibold text-xl flex items-center" v-tooltip.bottom="'Für diesen Auftrag bekommen Sie ' + request.credits + ' Punkte'">
         <i class="pi pi-crown mr-2 text-primary"></i> {{ request.credits }}
       </div>
       <span>
