@@ -147,6 +147,12 @@ const onSubmit = async (event: FormSubmitEvent<FormValues>) => {
     to: toIsoString(values.endDate),
   };
 
+  if (values.category.code === 'giveaway') {
+    payload.from = null;
+    payload.to = null;
+    payload.credits = 0;
+  }
+
   try {
     const response = await fetch('http://localhost:8080/request', {
       method: 'POST',

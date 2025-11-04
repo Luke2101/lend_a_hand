@@ -1,15 +1,11 @@
 <script setup lang="ts">
 import CarouselOrganism from "@/components/organisms/CarouselOrganism.vue";
 import TextAtom from "@/components/atoms/TextAtom.vue";
-import Divider from "primevue/divider";
 import Button from "primevue/button";
-import Tag from "primevue/tag";
 import RequestDialogOrganism from "@/components/organisms/RequestDialogOrganism.vue";
 import {ref} from "vue";
-import {useUserStore} from "@/stores/user";
 
-const userStore = useUserStore();
-const visible = ref(false);
+const visible = ref();
 </script>
 
 <template>
@@ -19,10 +15,4 @@ const visible = ref(false);
     <Button label="Anfrage Erstellen" icon="pi pi-plus" @click="visible = true"/>
   </div>
   <CarouselOrganism ownRequests/>
-  <Divider align="left" type="horizontal"/>
-  <TextAtom tag="h2" class="text-xl font-bold mt-4 mb-4">
-    Anfragen deiner Nachbarn
-    <Tag icon="pi pi-map-marker" v-tooltip.bottom="'gefilterte Anfragen'" severity="info" :value="userStore.userInfo.plz" class="ml-2"/>
-  </TextAtom>
-  <CarouselOrganism :ownRequests="false"/>
 </template>

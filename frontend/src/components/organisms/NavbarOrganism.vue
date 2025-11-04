@@ -50,7 +50,7 @@ const userMenuItems = ref([
       {
         label: 'Eigene Anfragen',
         icon: 'pi pi-user',
-        route: '/marketplace/own'
+        route: '/marketplace/my'
       },
       {
         label: 'Favoriten',

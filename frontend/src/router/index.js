@@ -5,6 +5,8 @@ import MarketplaceView from "@/views/MarketplaceView.vue";
 import SignUpView from "@/views/SignUpView.vue";
 import LoginView from "@/views/LoginView.vue";
 import UserSettingsView from "@/views/UserSettingsView.vue";
+import MyRequestsView from "@/views/MyRequestsView.vue";
+import FavoriteRequestsView from "@/views/FavoriteRequestsView.vue";
 
 const routes = [
     {
@@ -20,6 +22,16 @@ const routes = [
         path: '/marketplace',
         name: 'Marketplace',
         component: MarketplaceView
+    },
+    {
+        path: '/marketplace/my',
+        name: 'My',
+        component: MyRequestsView
+    },
+    {
+        path: '/marketplace/favorites',
+        name: 'Favorites',
+        component: FavoriteRequestsView
     },
     {
         path: '/signup',
