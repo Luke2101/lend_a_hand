@@ -50,15 +50,17 @@ const confirmDeleteUser = () => {
     group: 'dialog',
     message: 'Möchtest du dein Konto wirklich löschen?',
     header: 'Konto löschen',
-    icon: 'pi pi-info-circle',
+    icon: 'pi pi-exclamation-circle',
     rejectProps: {
       label: 'Abbrechen',
       severity: 'secondary',
-      outlined: true
+      outlined: true,
+      size: 'small'
     },
     acceptProps: {
       label: 'Löschen',
-      severity: 'danger'
+      severity: 'danger',
+      size: 'small'
     },
     accept: async() => {
       try {

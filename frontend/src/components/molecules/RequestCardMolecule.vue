@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import Tag from 'primevue/tag';
 import Button from 'primevue/button';
+import ConfettiExplosion from "vue-confetti-explosion";
 
 import type { Request } from '@/types/Request.interface';
-import { ref, onMounted } from 'vue';
+import { nextTick, ref, onMounted } from 'vue';
 
 import rent from '@/assets/rent.jpeg';
 import help from '@/assets/help.jpg';
@@ -17,19 +18,20 @@ interface UserInfo {
 const props = defineProps<{
   request: Request;
   ownRequests: boolean;
-  formatDate: (iso: string | undefined) => string;
+  formatDateTime : (iso: string | undefined) => string;
   getSeverity: (category: string) => 'info' | 'success' | 'warn' | null;
   getCategoryName: (category: string) => string | null;
   isFavorite: (requestId: number) => boolean;
   toggleFavorite: (requestId: number) => Promise<void>;
   confirmDelete: (event: MouseEvent, requestId: number) => void;
-  confirmAccept: (requestId: number) => void;
+  confirmAccept: (requestId: number, successCallback: () => void) => void;
   confirmFinish: (requestId: number) => void;
 }>();
 
 const images = { rent, help, giveaway };
 
 const acceptedByUser = ref<UserInfo | null>(null);
+const showConfetti = ref(false);
 
 const fetchAcceptedBy = async (userId: string) => {
   try {
@@ -54,6 +56,15 @@ onMounted(() => {
     fetchAcceptedBy(props.request.accepted_by);
   }
 });
+
+const triggerAccept = () => {
+  props.confirmAccept(props.request.id, () => {
+    showConfetti.value = false;
+    nextTick(() => {
+      showConfetti.value = true;
+    });
+  });
+};
 </script>
 
 <template>
@@ -74,21 +85,41 @@ onMounted(() => {
         size="small"
         @click="confirmFinish(request.id)"
     />
-    <div class="mb-1 mt-2 font-bold flex justify-between">
+    <div class="mb-1 mt-2 text-lg font-semibold flex justify-between">
       {{ request.title }}
-      <Tag v-if="!props.ownRequests" icon="pi pi-map-marker" v-tooltip.bottom="request.city" :value="request.plz" class="ml-2"/>
+      <Tag
+          v-if="!props.ownRequests"
+          icon="pi pi-map-marker"
+          v-tooltip.bottom="request.city"
+          :value="request.plz"
+          class="ml-2"
+      />
     </div>
     <div v-if="!props.ownRequests">
       <i class="pi pi-user mr-2 mb-2"/>
       {{ request.prename }}
     </div>
     <div v-if="request.from && request.to" class="text-sm text-surface-500 dark:text-surface-400 mb-1">
-      {{ formatDate(request.from) }} – {{ formatDate(request.to) }}
+      {{ formatDateTime(request.from) }} – {{ formatDateTime(request.to)}}
     </div>
-    <p class="text-sm text-surface-600 dark:text-surface-300 max-w-[22rem] line-clamp-2 mb-2 break-words">{{ request.description || 'Keine Beschreibung vorhanden.' }}</p>
+    <p
+        class="text-sm text-surface-600 dark:text-surface-300 max-w-[22rem] line-clamp-2 mb-4 break-words"
+        v-tooltip.bottom="{
+      value: request.description,
+      pt:{root:{style:{maxWidth: '24rem'}}},
+      autoHide: false,
+      showDelay: 500,
+      hideDelay: 200
+    }"
+    >
+      {{ request.description || 'Keine Beschreibung vorhanden.' }}
+    </p>
 
     <div class="flex justify-between items-center mt-auto">
-      <div class="mt-0 font-semibold text-xl flex items-center" v-tooltip.bottom="'Für diesen Auftrag bekommen Sie ' + request.credits + ' Punkte'">
+      <div
+          class="mt-0 font-semibold text-xl flex items-center"
+          v-tooltip.bottom="request.category === 'giveaway' ? 'Dies ist ein Geschenk' : 'Für diesen Auftrag bekommen Sie ' + request.credits + ' Punkte.'"
+      >
         <i class="pi pi-crown mr-2 text-primary"></i> {{ request.credits }}
       </div>
       <span>
@@ -97,7 +128,7 @@ onMounted(() => {
               icon="pi pi-trash"
               severity="danger"
               variant="text"
-              v-tooltip="'Auftrag löschen'"
+              v-tooltip.bottom="'Auftrag löschen'"
               @click="confirmDelete($event, request.id)"
           />
           <Button
@@ -105,7 +136,7 @@ onMounted(() => {
               :icon="isFavorite(request.id) ? 'pi pi-heart-fill' : 'pi pi-heart'"
               :severity="isFavorite(request.id) ? 'danger' : 'secondary'"
               variant="text"
-              v-tooltip="isFavorite(request.id) ? 'Aus Favoriten entfernen' : 'Zu Favoriten hinzufügen'"
+              v-tooltip.bottom="isFavorite(request.id) ? 'Aus Favoriten entfernen' : 'Zu Favoriten hinzufügen'"
               @click="toggleFavorite(request.id)"
           />
           <!-- TODO: add click event -->
@@ -113,7 +144,7 @@ onMounted(() => {
               v-if="props.ownRequests"
               icon="pi pi-pen-to-square"
               variant="text"
-              v-tooltip="'Auftrag bearbeiten'"
+              v-tooltip.bottom="'Auftrag bearbeiten'"
               class="ml-2"
           />
           <Button
@@ -121,9 +152,16 @@ onMounted(() => {
               icon="pi pi-check"
               variant="text"
               severity="success"
-              v-tooltip="request.category === 'giveaway' ? 'Geschenk annehmen' : 'Auftrag annehmen'"
+              v-tooltip.bottom="request.category === 'giveaway' ? 'Geschenk annehmen' : 'Auftrag annehmen'"
               class="ml-2"
-              @click="confirmAccept(request.id)"
+              @click="triggerAccept()"
+          />
+          <ConfettiExplosion
+              v-if="showConfetti"
+              :particleCount="250"
+              :force="0.7"
+              :stageHeight="1700"
+              :colors="['#000000', '#4e4e4e', '#aaaaaa', '#ffffff']"
           />
         </span>
     </div>

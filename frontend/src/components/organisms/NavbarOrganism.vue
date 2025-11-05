@@ -57,6 +57,11 @@ const userMenuItems = ref([
         icon: 'pi pi-heart',
         route: '/marketplace/favorites'
       },
+      {
+        label: 'Angenommene Anfragen',
+        icon: 'pi pi-list-check',
+        route: '/marketplace/myAccepted'
+      },
     ]
   },
   {
@@ -164,7 +169,6 @@ async function logout() {
               <Button
                   :label="userStore.userInfo.balance ? userStore.userInfo.balance.toString() : '–'"
                   size="small"
-                  severity="secondary"
                   variant="outlined"
                   icon="pi pi-crown"
                   rounded
@@ -179,7 +183,7 @@ async function logout() {
                   <ProgressBar :value="userStore.userInfo.availableBalance/userStore.userInfo.balance*100"> {{ userStore.userInfo.availableBalance }}/{{ userStore.userInfo.balance }}</ProgressBar>
                 </div>
               </Popover>
-              <Avatar :label="avatarLabel" shape="circle" class="avatar" @click="avatarToggle" />
+              <Avatar :label="avatarLabel" shape="circle" class="avatar h-full" @click="avatarToggle"/>
             </template>
             <template v-else>
               <Avatar icon="pi pi-user" shape="circle" class="avatar" @click="avatarToggle" />

@@ -34,6 +34,11 @@ const routes = [
         component: FavoriteRequestsView
     },
     {
+        path: '/marketplace/myAccepted',
+        name: 'My Accepted',
+        component: FavoriteRequestsView
+    },
+    {
         path: '/signup',
         name: 'Sign Up',
         component: SignUpView

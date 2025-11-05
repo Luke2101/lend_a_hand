@@ -161,8 +161,7 @@ const confirmDelete = (event: MouseEvent, requestId: number) => {
           toast.add({ severity: 'info', summary: 'Bestätigt', detail: 'Anfrage gelöscht', life: 3000 });
           requests.value = requests.value.filter(r => r.id !== requestId);
         } else if (response.status === 403) {
-          const data = await response.json();
-          toast.add({ severity: 'error', summary: 'Fehler', detail: data.message || 'Du hast keine Berechtigung, diese Anfrage zu löschen.', life: 5000 });
+          toast.add({ severity: 'error', summary: 'Fehler', detail: 'Du hast keine Berechtigung, diese Anfrage zu löschen.', life: 5000 });
         } else {
           const data = await response.json();
           toast.add({ severity: 'error', summary: 'Fehler', detail: data.message || 'Löschen fehlgeschlagen.', life: 5000 });
@@ -174,7 +173,7 @@ const confirmDelete = (event: MouseEvent, requestId: number) => {
   });
 };
 
-const confirmAccept = (requestId: number) => {
+const confirmAccept = (requestId: number, successCallback: () => void) => {
   confirm.require({
     group: 'dialog',
     header: 'Anfrage annehmen',
@@ -193,11 +192,6 @@ const confirmAccept = (requestId: number) => {
       size: 'small',
     },
     accept: async() => {
-      if (props.ownRequests) {
-        console.error('FEHLER: Eigene Anfragen können nicht angenommen werden.');
-        return;
-      }
-
       try {
         const response = await fetch(`http://localhost:8080/request/accept?id=${requestId}`, {
           method: 'PATCH',
@@ -208,6 +202,10 @@ const confirmAccept = (requestId: number) => {
         if (response.ok) {
           const result = await response.json();
           console.log('Anfrage erfolgreich angenommen:', result);
+          successCallback();
+        }
+        else if (response.status === 403) {
+          toast.add({ severity: 'error', summary: 'Fehler', detail: 'Diese Anfrage wurde bereits angenommen oder Sie sind nicht dazu berechtigt.', life: 5000});
         } else {
           const errorData = await response.json();
           console.error('Fehler beim Annehmen der Anfrage:', errorData.message);
@@ -261,10 +259,11 @@ const confirmFinish = (requestId: number) => {
   });
 };
 
-const formatDate = (iso: string | undefined) => {
+const formatDateTime = (iso: string | undefined) => {
   if (!iso) return '-';
   const d = new Date(iso);
-  return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' '
+      + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
 };
 
 const getSeverity = (category: string): 'info' | 'success' | 'warn' | null => {
@@ -313,7 +312,7 @@ const responsiveOptions: ResponsiveOption[] = [
           <RequestCardMolecule
               :request="slotProps.data"
               :own-requests="props.ownRequests"
-              :format-date="formatDate"
+              :format-date-time="formatDateTime"
               :get-severity="getSeverity"
               :get-category-name="getCategoryName"
               :is-favorite="isFavorite"
