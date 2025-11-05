@@ -1,7 +1,7 @@
 import { StatusCodes } from "http-status-codes";
 import RequestService from "../services/RequestService.js";
 import type { Request, Response } from "express";
-import type { CreateRequestBody, IdArray, IdParam } from "../schemas/requestSchemas.js";
+import {type CreateRequestBody, type IdArray, idArrayQuerySchema, type IdParam} from "../schemas/requestSchemas.js";
 import type { AuthenticatedRequest } from "../types.js";
 
 /**
@@ -133,7 +133,9 @@ class RequestController {
      * @throws {500} INTERNAL_SERVER_ERROR - When retrieval fails due to server error.
      */
     public static async get(req: Request<{}, {}, {}, IdArray>, res: Response) {
-        const result = await RequestController.requestService.getRequest(req.query.ids);
+        const parsedQuery = idArrayQuerySchema.parse(req.query);
+        const ids: number[] = parsedQuery.ids;
+        const result = await RequestController.requestService.getRequest(ids);
         if (result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
         if (result == StatusCodes.NOT_FOUND) return res.status(StatusCodes.NOT_FOUND).send({ message: "REQUEST_NOT_FOUND" });
         return res.status(StatusCodes.OK).send(result);

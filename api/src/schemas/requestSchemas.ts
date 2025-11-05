@@ -20,12 +20,17 @@ export const idParamStringQuerySchema = z.object({
 
 export const idArrayQuerySchema = z.object({
     ids: z.preprocess((val) => {
-        // If single number or string, wrap in an array
-        if (typeof val === "string") return [Number(val)];
-        if (typeof val === "number") return [val];
-        return val;
+        if (typeof val === "string") {
+            // Split by comma and convert to numbers
+            return val.split(",").map(v => Number(v.trim()));
+        }
+
+        // Anything else (undefined/null) → return empty array
+        return [];
     }, z.array(z.coerce.number()))
 });
+
+
 
 export const updateReuqestSchema = createRequestSchema.partial();
 
