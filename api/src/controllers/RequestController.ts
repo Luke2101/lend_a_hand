@@ -1,36 +1,46 @@
-import {StatusCodes} from "http-status-codes";
+import { StatusCodes } from "http-status-codes";
 import RequestService from "../services/RequestService.js";
-import type {Request, Response} from "express";
-import type {CreateRequestBody, IdArrayBody, IdParam} from "../schemas/requestSchemas.js";
-import type {AuthenticatedRequest} from "../types.js";
-import UserService from "../services/UserService.js";
+import type { Request, Response } from "express";
+import type { CreateRequestBody, IdArray, IdParam } from "../schemas/requestSchemas.js";
+import type { AuthenticatedRequest } from "../types.js";
 
 /**
  * @class RequestController
  * @classdesc Controller handling all request-related operations including creation,
- * modification, deletion, and retrieval of service requests
+ * modification, deletion, acceptance, and retrieval of service requests.
  *
  * @property {RequestService} requestService - Service instance handling business logic for requests
  */
 class RequestController {
 
-    private static requestService:RequestService;
+    private static requestService: RequestService;
 
-    public static setRequestService(reqs: RequestService){
+    /**
+     * Sets the RequestService instance for the controller.
+     *
+     * @param {RequestService} reqs - Instance of RequestService providing business logic methods.
+     * @returns {void}
+     *
+     * @example
+     * RequestController.setRequestService(new RequestService());
+     */
+    public static setRequestService(reqs: RequestService) {
         RequestController.requestService = reqs;
     }
 
     /**
-     * Creates a new service request
-     * @param {AuthenticatedRequest<{},{},CreateRequestBody>} req - Authenticated request containing request data
-     * @param {Response} res - Express response object
-     * @returns {Promise<Response>} Response with created request data or error message
+     * Creates a new service request.
      *
-     * @throws {500} INTERNAL_SERVER_ERROR - When request creation fails due to server error
-     * @throws {403} FORBIDDEN - When user has reached maximum pending requests limit
+     * @param {AuthenticatedRequest<{}, {}, CreateRequestBody>} req - Authenticated request containing request data.
+     * @param {Response} res - Express response object.
+     * @returns {Promise<Response>} Response with created request data or error message.
+     *
+     * @throws {500} INTERNAL_SERVER_ERROR - When request creation fails due to server error.
+     * @throws {403} FORBIDDEN - When user has reached maximum pending requests limit.
+     * @throws {402} PAYMENT_REQUIRED - When user has insufficient credits.
      *
      * @example
-     * // Request body
+     * // POST /requests
      * {
      *   "title": "Help with groceries",
      *   "category": "shopping",
@@ -40,145 +50,166 @@ class RequestController {
      *   "to": "2023-12-01T12:00:00Z"
      * }
      */
-    public static async create(req: AuthenticatedRequest<{},{},CreateRequestBody>, res: Response) {
+    public static async create(req: AuthenticatedRequest<{}, {}, CreateRequestBody>, res: Response) {
         const result = await RequestController.requestService.createRequest(req.user.id, req.body, req.user.balance);
-        if(result == StatusCodes.BAD_GATEWAY) return res.status(StatusCodes.BAD_REQUEST).send({message: "CREDITS_CANNOT_BE_NULL"})
-        if(result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
-        if(result == StatusCodes.FORBIDDEN) return res.status(StatusCodes.FORBIDDEN).send({message: "REQUEST_LIMIT_REACHED"})
-        if(result == StatusCodes.PAYMENT_REQUIRED) return res.status(StatusCodes.PAYMENT_REQUIRED).send({message: "NOT_ENOUGH_BALANCE"})
+        if (result == StatusCodes.BAD_GATEWAY) return res.status(StatusCodes.BAD_REQUEST).send({ message: "CREDITS_CANNOT_BE_NULL" });
+        if (result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
+        if (result == StatusCodes.FORBIDDEN) return res.status(StatusCodes.FORBIDDEN).send({ message: "REQUEST_LIMIT_REACHED" });
+        if (result == StatusCodes.PAYMENT_REQUIRED) return res.status(StatusCodes.PAYMENT_REQUIRED).send({ message: "NOT_ENOUGH_BALANCE" });
         return res.status(StatusCodes.CREATED).send(result);
     }
 
     /**
-     * Deletes a specific request
-     * @param {AuthenticatedRequest<{},{}, {},IdParam>} req - Authenticated request with request ID in query params
-     * @param {Response} res - Express response object
-     * @returns {Promise<Response>} Response indicating success or failure of deletion
+     * Deletes a specific request.
      *
-     * @throws {403} FORBIDDEN - When user is not the creator of the request
-     * @throws {500} INTERNAL_SERVER_ERROR - When deletion fails due to server error
+     * @param {AuthenticatedRequest<{}, {}, {}, IdParam>} req - Authenticated request with request ID in query params.
+     * @param {Response} res - Express response object.
+     * @returns {Promise<Response>} Response indicating success or failure of deletion.
+     *
+     * @throws {403} FORBIDDEN - When user is not the creator of the request.
+     * @throws {500} INTERNAL_SERVER_ERROR - When deletion fails due to server error.
      *
      * @example
-     * // DELETE /api/requests?id=123
+     * // DELETE /requests?id=123
      */
-    public static async delete(req: AuthenticatedRequest<{},{}, {},IdParam>, res: Response) {
-        const result = await RequestController.requestService.deleteRequest(req.user.id,req.query.id)
-        if(result == StatusCodes.FORBIDDEN) return res.status(StatusCodes.FORBIDDEN).send({message: "REQUEST_CREATOR_TOKEN_MISMATCH"});
-        if(result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({message: "ERROR_DURING_DELETION"})
-        return res.status(result).send({message: "DELETED"})
+    public static async delete(req: AuthenticatedRequest<{}, {}, {}, IdParam>, res: Response) {
+        const result = await RequestController.requestService.deleteRequest(req.user.id, req.query.id);
+        if (result == StatusCodes.FORBIDDEN) return res.status(StatusCodes.FORBIDDEN).send({ message: "REQUEST_CREATOR_TOKEN_MISMATCH" });
+        if (result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: "ERROR_DURING_DELETION" });
+        return res.status(result).send({ message: "DELETED" });
     }
 
     /**
-     * Updates an existing request
-     * @param {AuthenticatedRequest<{}, {}, CreateRequestBody, IdParam>} req - Authenticated request with update data and request ID
-     * @param {Response} res - Express response object
-     * @returns {Promise<Response>} Response indicating success or failure of update
+     * Updates an existing request.
      *
-     * @throws {403} FORBIDDEN - When user is not the creator of the request
-     * @throws {500} INTERNAL_SERVER_ERROR - When update fails due to server error
+     * @param {AuthenticatedRequest<{}, {}, CreateRequestBody, IdParam>} req - Authenticated request with update data and request ID.
+     * @param {Response} res - Express response object.
+     * @returns {Promise<Response>} Response indicating success or failure of update.
+     *
+     * @throws {403} FORBIDDEN - When user is not the creator of the request.
+     * @throws {500} INTERNAL_SERVER_ERROR - When update fails due to server error.
      *
      * @example
-     * // PUT /api/requests?id=123
+     * // PUT /requests?id=123
      * // Request body same as create
      */
     public static async update(req: AuthenticatedRequest<{}, {}, CreateRequestBody, IdParam>, res: Response) {
-        const result = await RequestController.requestService.updateRequest(req.query.id, req.user.id, req.body)
-        if(result == StatusCodes.FORBIDDEN) return res.status(StatusCodes.FORBIDDEN).send({message: "REQUEST_CREATOR_TOKEN_MISMATCH"});
-        if(result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({message: "UNABLE_TO_UPDATE_REQUEST"});
-        if(result == StatusCodes.OK) return res.status(StatusCodes.OK).send({message: "REQUEST_UPDATED"});
+        const result = await RequestController.requestService.updateRequest(req.query.id, req.user.id, req.body);
+        if (result == StatusCodes.FORBIDDEN) return res.status(StatusCodes.FORBIDDEN).send({ message: "REQUEST_CREATOR_TOKEN_MISMATCH" });
+        if (result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ message: "UNABLE_TO_UPDATE_REQUEST" });
+        if (result == StatusCodes.OK) return res.status(StatusCodes.OK).send({ message: "REQUEST_UPDATED" });
     }
 
     /**
-     * Accepts a request to fulfill the service
-     * @param {AuthenticatedRequest<{},{}, {},IdParam>} req - Authenticated request with request ID in query params
-     * @param {Response} res - Express response object
-     * @returns {Promise<Response>} Response indicating success or failure of acceptance
+     * Accepts a request to fulfill the service.
      *
-     * @throws {404} NOT_FOUND - When the specified request doesn't exist
-     * @throws {403} FORBIDDEN - When user cannot accept the request (creator or already accepted)
-     * @throws {500} INTERNAL_SERVER_ERROR - When acceptance fails due to server error
+     * @param {AuthenticatedRequest<{}, {}, {}, IdParam>} req - Authenticated request with request ID in query params.
+     * @param {Response} res - Express response object.
+     * @returns {Promise<Response>} Response indicating success or failure of acceptance.
+     *
+     * @throws {404} NOT_FOUND - When the specified request doesn't exist.
+     * @throws {403} FORBIDDEN - When user cannot accept the request (creator or already accepted).
+     * @throws {500} INTERNAL_SERVER_ERROR - When acceptance fails due to server error.
      *
      * @example
-     * // POST /api/requests/accept?id=123
+     * // POST /requests/accept?id=123
      */
-    public static async accept(req: AuthenticatedRequest<{},{}, {},IdParam>, res: Response) {
-        const result: StatusCodes = await RequestController.requestService.acceptRequest(req.query.id,req.user.id);
-        if(result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
-        if(result == StatusCodes.NOT_FOUND) return res.status(StatusCodes.NOT_FOUND).send({message: "REQUEST_NOT_FOUND"});
-        if(result == StatusCodes.FORBIDDEN) return res.status(StatusCodes.FORBIDDEN).send({message: "FORBIDDEN_TO_ACCEPT_REQUEST"})
-        return res.status(StatusCodes.OK).send({message: "REQUEST_ACCEPTED", id: req.query.id})
+    public static async accept(req: AuthenticatedRequest<{}, {}, {}, IdParam>, res: Response) {
+        const result: StatusCodes = await RequestController.requestService.acceptRequest(req.query.id, req.user.id);
+        if (result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
+        if (result == StatusCodes.NOT_FOUND) return res.status(StatusCodes.NOT_FOUND).send({ message: "REQUEST_NOT_FOUND" });
+        if (result == StatusCodes.FORBIDDEN) return res.status(StatusCodes.FORBIDDEN).send({ message: "FORBIDDEN_TO_ACCEPT_REQUEST" });
+        return res.status(StatusCodes.OK).send({ message: "REQUEST_ACCEPTED", id: req.query.id });
     }
 
     /**
-     * Retrieves a specific request by ID
-     * @param {Request<{},{}, {},IdParam>} req - Request with request ID in query params
-     * @param {Response} res - Express response object
-     * @returns {Promise<Response>} Response with request data or error message
+     * Retrieves a specific request or multiple requests by ID.
      *
-     * @throws {404} NOT_FOUND - When the specified request doesn't exist
-     * @throws {500} INTERNAL_SERVER_ERROR - When retrieval fails due to server error
+     * @param {Request<{}, {}, {}, IdArray>} req - Request with one or more request IDs in query params.
+     * @param {Response} res - Express response object.
+     * @returns {Promise<Response>} Response with request data or error message.
      *
-     * @example
-     * // GET /api/requests?id=123
+     * @throws {404} NOT_FOUND - When one or more specified requests don't exist.
+     * @throws {500} INTERNAL_SERVER_ERROR - When retrieval fails due to server error.
      */
-    public static async get(req: Request<{},{}, IdArrayBody>, res: Response) {
-        const result = await RequestController.requestService.getRequest(req.body)
-        if(result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
-        if(result == StatusCodes.NOT_FOUND) return res.status(StatusCodes.NOT_FOUND).send({message: "REQUEST_NOT_FOUND"})
+    public static async get(req: Request<{}, {}, {}, IdArray>, res: Response) {
+        const result = await RequestController.requestService.getRequest(req.query.ids);
+        if (result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
+        if (result == StatusCodes.NOT_FOUND) return res.status(StatusCodes.NOT_FOUND).send({ message: "REQUEST_NOT_FOUND" });
         return res.status(StatusCodes.OK).send(result);
     }
 
     /**
-     * Retrieves open requests near the user's location
-     * @param {AuthenticatedRequest} req - Authenticated request with user data
-     * @param {Response} res - Express response object
-     * @returns {Promise<Response>} Response with array of nearby requests
+     * Retrieves open requests near the user's location.
      *
-     * @throws {500} INTERNAL_SERVER_ERROR - When retrieval fails due to server error
+     * @param {AuthenticatedRequest} req - Authenticated request with user data.
+     * @param {Response} res - Express response object.
+     * @returns {Promise<Response>} Response with array of nearby requests.
+     *
+     * @throws {500} INTERNAL_SERVER_ERROR - When retrieval fails due to server error.
      *
      * @remarks
      * Filters out requests created by the user themselves and uses PLZ (Postleitzahl)
-     * for geographical proximity matching
+     * for geographical proximity matching.
      */
     public static async nearby(req: AuthenticatedRequest, res: Response) {
-        const result = await RequestController.requestService.getRequestsNearby(req.user.id,req.user.plz);
-        if(result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send()
+        const result = await RequestController.requestService.getRequestsNearby(req.user.id, req.user.plz);
+        if (result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
         return res.status(StatusCodes.OK).send(result);
     }
 
     /**
-     * Retrieves all requests created by the authenticated user
-     * @param {AuthenticatedRequest} req - Authenticated request with user data
-     * @param {Response} res - Express response object
-     * @returns {Promise<Response>} Response with array of user's requests
+     * Retrieves all requests created by the authenticated user.
      *
-     * @throws {500} INTERNAL_SERVER_ERROR - When retrieval fails due to server error
+     * @param {AuthenticatedRequest} req - Authenticated request with user data.
+     * @param {Response} res - Express response object.
+     * @returns {Promise<Response>} Response with array of user's requests.
      *
-     * @example
-     * GET /api/requests/self
+     * @throws {500} INTERNAL_SERVER_ERROR - When retrieval fails due to server error.
      */
-    public static async self(req: AuthenticatedRequest, res: Response){
+    public static async self(req: AuthenticatedRequest, res: Response) {
         const result = await RequestController.requestService.getRequestsForUser(req.user.id);
-        if(result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR);
+        if (result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR);
         return res.status(StatusCodes.OK).send(result);
     }
 
-    public static async finish(req: AuthenticatedRequest<{},{},{}, IdParam>, res: Response) {
-        const result = await RequestController.requestService.finishRequest(req.user.id,req.query.id)
-        if(result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(result).send();
-        if(result == StatusCodes.NOT_FOUND) return res.status(result).send({message: "REQUEST_DOES_NOT_EXIST"});
-        if(result == StatusCodes.CONFLICT) return res.status(result).send({message: "REQUEST_NOT_ACCEPTED"});
-        if(result == StatusCodes.PAYMENT_REQUIRED) return res.status(result).send({message: "INSUFFICIENT_BALANCE"});
-        if(result == StatusCodes.FORBIDDEN) return res.status(result).send({message: "CREATOR_TOKEN_MISMATCH"})
+    /**
+     * Marks a request as finished by the creator, transferring credits and closing it.
+     *
+     * @param {AuthenticatedRequest<{}, {}, {}, IdParam>} req - Authenticated request with request ID in query params.
+     * @param {Response} res - Express response object.
+     * @returns {Promise<Response>} Response indicating success or failure of completion.
+     *
+     * @throws {404} NOT_FOUND - When the request does not exist.
+     * @throws {409} CONFLICT - When the request has not been accepted yet.
+     * @throws {402} PAYMENT_REQUIRED - When there are insufficient credits to complete the transaction.
+     * @throws {403} FORBIDDEN - When the request creator does not match the authenticated user.
+     * @throws {500} INTERNAL_SERVER_ERROR - When finalization fails due to server error.
+     */
+    public static async finish(req: AuthenticatedRequest<{}, {}, {}, IdParam>, res: Response) {
+        const result = await RequestController.requestService.finishRequest(req.user.id, req.query.id);
+        if (result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(result).send();
+        if (result == StatusCodes.NOT_FOUND) return res.status(result).send({ message: "REQUEST_DOES_NOT_EXIST" });
+        if (result == StatusCodes.CONFLICT) return res.status(result).send({ message: "REQUEST_NOT_ACCEPTED" });
+        if (result == StatusCodes.PAYMENT_REQUIRED) return res.status(result).send({ message: "INSUFFICIENT_BALANCE" });
+        if (result == StatusCodes.FORBIDDEN) return res.status(result).send({ message: "CREATOR_TOKEN_MISMATCH" });
         return res.status(StatusCodes.OK).send(result);
     }
 
+    /**
+     * Retrieves all requests accepted by the authenticated user.
+     *
+     * @param {AuthenticatedRequest} req - Authenticated request with user data.
+     * @param {Response} res - Express response object.
+     * @returns {Promise<Response>} Response with array of accepted requests.
+     *
+     * @throws {500} INTERNAL_SERVER_ERROR - When retrieval fails due to server error.
+     */
     public static async accepted(req: AuthenticatedRequest, res: Response) {
         const result = await RequestController.requestService.getAcceptedRequests(req.user.id);
-        if(result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
+        if (result == StatusCodes.INTERNAL_SERVER_ERROR) return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
         return res.status(StatusCodes.OK).send(result);
     }
-
 
 }
 

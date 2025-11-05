@@ -18,7 +18,14 @@ export const idParamStringQuerySchema = z.object({
     id: z.string().nonempty()
 })
 
-export const idArrayQuerySchema = z.array(z.number())
+export const idArrayQuerySchema = z.object({
+    ids: z.preprocess((val) => {
+        // If single number or string, wrap in an array
+        if (typeof val === "string") return [Number(val)];
+        if (typeof val === "number") return [val];
+        return val;
+    }, z.array(z.coerce.number()))
+});
 
 export const updateReuqestSchema = createRequestSchema.partial();
 
@@ -27,4 +34,4 @@ export type CreateRequestBody = z.infer<typeof createRequestSchema>;
 export type UpdateRequestBody = z.infer<typeof updateReuqestSchema >;
 export type IdParam = z.infer<typeof updateRequestQuerySchema>;
 export type IdParamString = z.infer<typeof idParamStringQuerySchema>;
-export type IdArrayBody = z.infer<typeof idArrayQuerySchema>;
+export type IdArray = z.infer<typeof idArrayQuerySchema>;

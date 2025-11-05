@@ -50,14 +50,14 @@ describe("Get Request", async () => {
 
     it("Get Request with invalid id", async () => {
         const user = await new TestUserBuilder().withBalance(100).build();
-        const result = await request(app).get(`/request`).set("Cookie", user.token).send([40]);
+        const result = await request(app).get(`/request?ids=40`).set("Cookie", user.token).send();
         expect(result.status).toBe(StatusCodes.NOT_FOUND)
     })
 
     it("Get Request with valid id", async () => {
         const user = await new TestUserBuilder().withBalance(100).build();
         const {id} = await new TestRequestBuilder().create(user.token);
-        const result = await request(app).get(`/request`).set("Cookie", user.token).send([id]);
+        const result = await request(app).get(`/request?ids=${id}`).set("Cookie", user.token).send();
         expect(result.status).toBe(StatusCodes.OK)
         expect(result.body[0]).toHaveProperty("id")
         expect(result.body[0]).not.toHaveProperty("creator")
