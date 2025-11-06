@@ -62,6 +62,9 @@ describe("Get Request", async () => {
         expect(result.body[0]).toHaveProperty("id")
         expect(result.body[0]).not.toHaveProperty("creator")
         expect(result.body[0]).toHaveProperty("credits")
+        expect(result.body[0]).toHaveProperty("plz")
+        expect(result.body[0]).toHaveProperty("city")
+        expect(result.body[0]).toHaveProperty("prename")
     })
 
     it("Get own requests that dont exist" , async () => {

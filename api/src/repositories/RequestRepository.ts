@@ -74,7 +74,9 @@ class RequestRepository {
                 accepted_by: requestTable.accepted_by,
                 from: requestTable.from,
                 to: requestTable.to,
-                prename: user.prename
+                prename: user.prename,
+                city: user.city,
+                plz: user.plz,
             }).from(requestTable).innerJoin(user,eq(user.id, requestTable.creator)).where(eq(requestTable.id, reqId));
 
             if(result.length == 0) {
