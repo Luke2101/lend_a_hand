@@ -9,7 +9,11 @@
     "db:push": "npx drizzle-kit push",
     "db:gen": "npx @better-auth/cli generate --output ./src/db/auth-schema.ts",
     "db:setup": "npm run db:gen && npm run db:applyChanges",
-    "setup": "npm install && tsc && npm rum db:setup"
+    "setup": "npm install && npx tsc && npm rum db:setup",
+    "compile": "tsc",
+    "db:generateSampleData": "node dist/src/sample.js",
+    "firstTimeSetup": "npm run db:setup && npm run db:generateSampleData",
+    "start": "node dist/src/server.js"
   },
   "keywords": [],
   "author": "",

@@ -11,9 +11,10 @@ interface BuiltUser {
 export class TestUserBuilder {
     private user: TUser;
     private balanceAmount: number = 200;
-
-    constructor() {
+    private isProd: boolean
+    constructor(isProd:boolean =false) {
         this.user = getValidUniqueUser();
+        this.isProd = isProd
     }
 
     /**
@@ -41,10 +42,13 @@ export class TestUserBuilder {
 
         // Apply balance if specified
         await AdminTools.setBalance(this.user.email, this.balanceAmount);
-        onTestFinished(async () => {
-            logger.debug(`Clearing Test user=${this.user.email}`)
-            await this.clean()
-        })
+        if(!this.isProd) {
+            onTestFinished(async () => {
+                logger.debug(`Clearing Test user=${this.user.email}`)
+                await this.clean()
+            })
+        }
+
         return { user: this.user, token: token };
     }
 

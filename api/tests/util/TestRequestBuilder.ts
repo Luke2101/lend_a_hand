@@ -7,8 +7,8 @@ import logger from "../../src/util/logger.js";
 
 class TestRequestBuilder {
     private request: CreateRequestBody
-
-    constructor() {
+    private isProd: boolean
+    constructor(isProd: boolean = false) {
         this.request = {
             title: faker.food.ingredient(),
             from: faker.date.recent().toISOString(),
@@ -17,6 +17,7 @@ class TestRequestBuilder {
             category: RequestCategory.HELP,
             description: faker.lorem.text()
         }
+        this.isProd = isProd;
     }
 
     public withCredits(credits: number): this {
@@ -29,13 +30,32 @@ class TestRequestBuilder {
         return this;
     }
 
+    public withTitle(title: string) {
+        this.request.title = title;
+        return this;
+    }
+
+    public withDate(from: string, to: string) {
+        this.request.from = from;
+        this.request.to = to;
+        return this;
+    }
+
+    public withDescription(desc: string): this {
+        this.request.description = desc;
+        return this;
+    }
+
     public async create(creatorToken: string[]) {
         const resBody = await AdminTools.createSampleRequest(this.request, creatorToken)
         if(!Object.hasOwn(resBody, "id")) throw new TestingError("Unable to get sample request id")
-        onTestFinished(async () => {
-            logger.debug(`Clearing Test Request with id=${resBody.id}`);
-            await AdminTools.deleteRequestById(resBody.id)
-        })
+        if(!this.isProd) {
+            onTestFinished(async () => {
+                logger.debug(`Clearing Test Request with id=${resBody.id}`);
+                await AdminTools.deleteRequestById(resBody.id)
+            })
+        }
+        logger.debug(`Created test request with id=${resBody.id}`)
         return {
             id: resBody.id as number,
             credits: this.request.credits
