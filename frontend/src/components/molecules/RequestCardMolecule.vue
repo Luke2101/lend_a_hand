@@ -149,10 +149,11 @@ const triggerAccept = () => {
           />
           <Button
               v-else
+              :disabled="!!request.accepted_by"
               icon="pi pi-check"
               variant="text"
-              severity="success"
-              v-tooltip.bottom="request.category === 'giveaway' ? 'Geschenk annehmen' : 'Auftrag annehmen'"
+              :severity="!request.accepted_by ? 'success' : 'secondary'"
+              v-tooltip.bottom="!request.accepted_by ? (request.category === 'giveaway' ? 'Geschenk annehmen' : 'Auftrag annehmen') : 'Auftrag wurde bereits angenommen'"
               class="ml-2"
               @click="triggerAccept()"
           />

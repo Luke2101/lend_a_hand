@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
-import {useConfirm} from "primevue";
+import { ref, onMounted, watch, defineExpose, defineEmits } from "vue";
+import { useConfirm } from "primevue";
 import { useToast } from "primevue/usetoast";
 
 import Carousel from 'primevue/carousel';
@@ -34,6 +34,8 @@ const requestsLoading = ref(true);
 
 const favoriteIds = ref<number[]>([]);
 const favouritesLoading = ref(false);
+
+const emit = defineEmits(['requestUpdated']);
 
 const fetchRequests = async () => {
   requestsLoading.value = true;
@@ -121,7 +123,7 @@ const fetchFavorites = async () => {
 };
 
 const loadData = async () => {
-  if (props.viewType === ViewType.nearby) {
+  if (props.viewType !== ViewType.own) {
     await fetchFavorites();
   }
   await fetchRequests();
@@ -192,6 +194,7 @@ const confirmDelete = (event: MouseEvent, requestId: number) => {
         if (response.ok) {
           toast.add({ severity: 'info', summary: 'Bestätigt', detail: 'Anfrage gelöscht', life: 3000 });
           requests.value = requests.value.filter(r => r.id !== requestId);
+          emit('requestUpdated');
         } else if (response.status === 403) {
           toast.add({ severity: 'error', summary: 'Fehler', detail: 'Du hast keine Berechtigung, diese Anfrage zu löschen.', life: 5000 });
         } else {
@@ -235,6 +238,9 @@ const confirmAccept = (requestId: number, successCallback: () => void) => {
           const result = await response.json();
           console.log('Anfrage erfolgreich angenommen:', result);
           successCallback();
+          setTimeout(() => {
+            emit('requestUpdated');
+          }, 1500); // delay for confetti
         }
         else if (response.status === 403) {
           toast.add({ severity: 'error', summary: 'Fehler', detail: 'Diese Anfrage wurde bereits angenommen oder Sie sind nicht dazu berechtigt.', life: 5000});
@@ -279,6 +285,7 @@ const confirmFinish = (requestId: number) => {
         if (response.ok) {
           const result = await response.json();
           console.log('Anfrage erfolgreich abgeschlossen:', result);
+          emit('requestUpdated');
         } else {
           const errorData = await response.json();
           console.error('Fehler beim Abschliessen der Anfrage:', errorData.message);
@@ -330,6 +337,10 @@ const responsiveOptions: ResponsiveOption[] = [
   { breakpoint: '767px', numVisible: 2, numScroll: 1 },
   { breakpoint: '575px', numVisible: 1, numScroll: 1 }
 ];
+
+defineExpose({
+  fetchRequests
+});
 </script>
 
 <template>
