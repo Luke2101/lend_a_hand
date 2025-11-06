@@ -2,7 +2,36 @@ import { ref } from 'vue';
 
 const isLoggedIn = ref(false);
 
-// TODO
+async function checkSessionStatus() {
+    if (localStorage.getItem('isLoggedIn') !== 'true') {
+        isLoggedIn.value = false;
+        return false;
+    }
+
+    try {
+        const response = await fetch('http://localhost:8080/user/info', {
+            method: 'HEAD',
+            credentials: 'include'
+        });
+
+        if (response.ok) {
+            if (!isLoggedIn.value) isLoggedIn.value = true;
+            return true;
+        }
+
+        if (response.status === 401 || response.status === 403) {
+            isLoggedIn.value = false;
+            localStorage.setItem('isLoggedIn', 'false');
+            return false;
+        }
+
+        return isLoggedIn.value;
+
+    } catch (error) {
+        console.log(error);
+        return isLoggedIn.value;
+    }
+}
 
 export function useAuth() {
     const setLoggedIn = (status: boolean) => {
@@ -18,5 +47,6 @@ export function useAuth() {
     return {
         isLoggedIn,
         setLoggedIn,
+        checkSessionStatus,
     };
 }

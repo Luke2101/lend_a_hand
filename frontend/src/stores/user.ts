@@ -25,7 +25,7 @@ export const useUserStore = defineStore('user', () => {
     const isLoading = ref(false);
     const hasError = ref(false);
 
-    const { isLoggedIn } = useAuth();
+    const { isLoggedIn,setLoggedIn } = useAuth();
 
     async function fetchUserInfo() {
         if (!isLoggedIn.value) {
@@ -49,6 +49,10 @@ export const useUserStore = defineStore('user', () => {
 
             if (response.ok) {
                 userInfo.value = await response.json() as UserInfo;
+            } else if (response.status === 401 || response.status === 403) { // expired/invalid session (401/403)
+                setLoggedIn(false);
+                hasError.value = false;
+                userInfo.value = null;
             } else {
                 hasError.value = true;
                 userInfo.value = null;
