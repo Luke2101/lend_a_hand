@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { z } from "zod";
 import { zodResolver } from "@primevue/forms/resolvers/zod";
 import type { ZodType } from "zod";
@@ -19,6 +19,7 @@ import DatePicker from "primevue/datepicker"
 import {useToast} from "primevue/usetoast";
 import Message from "primevue/message";
 import {useUserStore} from "@/stores/user";
+import type { Request } from '@/types/Request.interface';
 
 interface Category {
   name: string;
@@ -28,13 +29,18 @@ interface Category {
 interface FormValues {
   title: string;
   category: Category | undefined;
-  description: string;
-  credits: number;
+  description: string | undefined;
+  credits: number | undefined;
   startDate: Date | null;
   endDate: Date | null;
 }
 
 const emit = defineEmits(['update:visible']);
+
+const props = defineProps<{
+  visible: boolean;
+  requestToEdit?: Request;
+}>();
 
 const categories = ref<Category[]>([
   { name: 'Ausleihen', code: 'rent' },
@@ -42,14 +48,39 @@ const categories = ref<Category[]>([
   { name: 'zu\xa0verschenken', code: 'giveaway' },
 ]);
 
-const initialValues: FormValues = {
-  title: '',
-  category: categories.value[0],
-  description: '',
-  credits: 0,
-  startDate: null,
-  endDate: null,
+const toDateObject = (iso: string | null | undefined): Date | null => {
+  if (!iso) return null;
+  return new Date(iso);
 };
+
+const getCategoryObject = (code: string): Category | undefined => {
+  return categories.value.find(c => c.code === code);
+};
+
+const initialValues = computed<FormValues>(() => {
+  if (props.requestToEdit) {
+    return {
+      title: props.requestToEdit.title,
+      category: getCategoryObject(props.requestToEdit.category),
+      description: props.requestToEdit.description,
+      credits: props.requestToEdit.credits,
+      startDate: toDateObject(props.requestToEdit.from),
+      endDate: toDateObject(props.requestToEdit.to),
+    };
+  }
+  return {
+    title: '',
+    category: categories.value[0],
+    description: '',
+    credits: 0,
+    startDate: null,
+    endDate: null,
+  };
+});
+
+const dialogHeader = computed(() => {
+  return props.requestToEdit ? 'Anfrage bearbeiten' : 'Anfrage erstellen';
+});
 
 const formSchema = z.object({
   title: z.string().min(3, { message: 'Der Titel muss mindestens 3 Zeichen lang sein.' }),
@@ -130,13 +161,13 @@ const toIsoString = (date: Date | null | undefined): string | null => {
 
 const onSubmit = async (event: FormSubmitEvent<FormValues>) => {
   const values = event.values;
-  console.log('Formular erfolgreich übermittelt. Daten:');
-  console.log(values);
 
   if (!values.title || !values.category) {
     toast.add({ severity: 'error', summary: 'Fehler', detail: 'Formulardaten unvollständig.', life: 3000 });
     return;
   }
+
+  const isEditing = !!props.requestToEdit?.id;
 
   const payload = {
     title: values.title,
@@ -153,9 +184,19 @@ const onSubmit = async (event: FormSubmitEvent<FormValues>) => {
     payload.credits = 0;
   }
 
+  let url = 'http://localhost:8080/request';
+  let method = 'POST';
+  let successMessage = 'Anfrage erfolgreich erstellt.'
+
+  if (isEditing) {
+    url = `http://localhost:8080/request?id=${props.requestToEdit!.id}`;
+    method = 'PATCH';
+    successMessage = 'Anfrage erfolgreich aktualisiert.';
+  }
+
   try {
-    const response = await fetch('http://localhost:8080/request', {
-      method: 'POST',
+    const response = await fetch(url, {
+      method: method,
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(payload),
       credentials: 'include',
@@ -164,7 +205,7 @@ const onSubmit = async (event: FormSubmitEvent<FormValues>) => {
     const data = await response.json();
 
     if (response.ok) {
-      toast.add({severity: 'success', summary: 'Erfolg', detail: data.message || 'Anfrage erfolgreich erstellt.', life: 3000});
+      toast.add({severity: 'success', summary: 'Erfolg', detail: successMessage, life: 3000});
       emit('update:visible', false);
       console.log('API-Antwort (201):', data);
     } else if (response.status === 403) {
@@ -187,7 +228,7 @@ const onSubmit = async (event: FormSubmitEvent<FormValues>) => {
       toast.add({
         severity: 'error',
         summary: 'Fehler',
-        detail: data.message || 'Beim Erstellen der Anfrage ist ein unerwarteter Fehler aufgetreten.',
+        detail: data.message || 'Ein unerwarteter Fehler ist aufgetreten.',
         life: 5000
       });
       console.error(`API-Fehler (${response.status}):`, data);
@@ -205,8 +246,10 @@ const onSubmit = async (event: FormSubmitEvent<FormValues>) => {
 </script>
 
 <template>
-  <Dialog modal header="Anfrage erstellen" :style="{ width: '36rem' }" @update:visible="(value) => emit('update:visible', value)">
-    <span class="text-surface-500 dark:text-surface-400 block mb-8">Erstelle eine neue Anfrage.</span>
+  <Dialog v-model:visible="props.visible" modal :header="dialogHeader" :style="{ width: '36rem' }" @update:visible="(value) => emit('update:visible', value)">
+    <span class="text-surface-500 dark:text-surface-400 block mb-8">
+      {{ props.requestToEdit ? 'Bearbeite die ausgewählte Anfrage.' : 'Erstelle eine neue Anfrage.' }}
+    </span>
     <Form
         v-slot="form"
         :initialValues="initialValues"
@@ -329,7 +372,7 @@ const onSubmit = async (event: FormSubmitEvent<FormValues>) => {
 
       <div class="flex justify-end gap-2">
         <Button type="button" label="Abbrechen" severity="secondary" @click="emit('update:visible', false);"/>
-        <Button type="submit" label="Anfrage erstellen"/>
+        <Button type="submit" :label="props.requestToEdit ? 'Anfrage aktualisieren' : 'Anfrage erstellen'"/>
       </div>
     </Form>
   </Dialog>

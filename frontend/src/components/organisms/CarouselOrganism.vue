@@ -9,6 +9,7 @@ import ProgressSpinner from 'primevue/progressspinner';
 import type { Request } from '@/types/Request.interface';
 import { ViewType } from '@/types/ViewType.enum';
 import RequestCardMolecule from '@/components/molecules/RequestCardMolecule.vue';
+import RequestDialogOrganism from "@/components/organisms/RequestDialogOrganism.vue";
 
 interface ResponsiveOption {
   breakpoint: string;
@@ -36,6 +37,9 @@ const favoriteIds = ref<number[]>([]);
 const favouritesLoading = ref(false);
 
 const emit = defineEmits(['requestUpdated']);
+
+const isEditDialogVisible = ref(false);
+const requestToEdit = ref<Request | undefined>(undefined);
 
 const fetchRequests = async () => {
   requestsLoading.value = true;
@@ -108,7 +112,6 @@ const fetchFavorites = async () => {
 
     if (response.ok) {
       const data = await response.json();
-      // Die API gibt direkt ein Array von IDs zurück
       favoriteIds.value = Array.isArray(data) ? data : [];
     } else {
       console.error('Fehler beim Laden der Favoriten-IDs');
@@ -168,6 +171,11 @@ const toggleFavorite = async (requestId: number) => {
     console.error('Network error when toggling favorites:', error);
     await fetchFavorites();
   }
+};
+
+const confirmEdit = (request: Request) => {
+  requestToEdit.value = request;
+  isEditDialogVisible.value = true;
 };
 
 const confirmDelete = (event: MouseEvent, requestId: number) => {
@@ -344,6 +352,16 @@ defineExpose({
 </script>
 
 <template>
+  <RequestDialogOrganism
+      v-model:visible="isEditDialogVisible"
+      :request-to-edit="requestToEdit"
+      @update:visible="(value) => {
+        isEditDialogVisible = value;
+        if (!value) {
+            fetchRequests();
+        }
+      }"
+  />
   <div class="card">
     <div v-if="requestsLoading" class="flex justify-center items-center h-40">
       <ProgressSpinner/>
@@ -360,6 +378,7 @@ defineExpose({
               :get-category-name="getCategoryName"
               :is-favorite="isFavorite"
               :toggle-favorite="toggleFavorite"
+              :confirm-edit="confirmEdit"
               :confirm-delete="confirmDelete"
               :confirm-accept="confirmAccept"
               :confirm-finish="confirmFinish"
