@@ -69,7 +69,7 @@
  ```
 
  Dadurch werden alle benötigten Pakete installiert und eventuell notwendige Datenbankinitialisierungen vorgenommen.
-
+ Während der Einrichtung wird eine Abfrage kommen, ein Schema zu überschreiben, dies bitte mit "y" bestätigen in der Konsole
  ---
 
  ### 4. API starten
@@ -124,3 +124,7 @@
 | Frontend Start | `npm run dev` | Startet den Dev-Server |
 
  ---
+
+Es wurden bereits einige Beispiel Requests erstellt, bedeutet, bei der Registrierung können diese eingesehen werden indem
+du dir einen Account machst und wohnhaft in einer Stadt mit Postleitzahl 748 beginnend. Stadtname ist egal, lediglich die Postleitzahl.
+Sonst werden die Beispielanfragen nicht angezeigt.
