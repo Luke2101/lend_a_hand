@@ -124,21 +124,3 @@
 | Frontend Start | `npm run dev` | Startet den Dev-Server |
 
  ---
-
- ## 🧩 Ordnerstruktur (Kurzüberblick)
-
- ```
- /
- ├── api/                  # Backend (Node.js + MySQL)
- │   ├── docker-compose.yaml
- │   ├── .env.example
- │   └── ...
- └── frontend/             # Frontend (z. B. React / Vue / Vite)
-     ├── package.json
---     └── ...
--- ```
-
--- ---
-
- Viel Erfolg beim Starten des Projekts! 🚀  
- Bei Fragen oder Problemen: bitte Issue eröffnen oder im Team nachfragen.
