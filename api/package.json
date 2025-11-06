@@ -12,7 +12,7 @@
     "setup": "npm install && npx tsc && npm rum db:setup",
     "compile": "tsc",
     "db:generateSampleData": "node dist/src/sample.js",
-    "firstTimeSetup": "npm run db:setup && npm run db:generateSampleData",
+    "firstTimeSetup": "npm run setup && npm run db:generateSampleData",
     "start": "node dist/src/server.js"
   },
   "keywords": [],
