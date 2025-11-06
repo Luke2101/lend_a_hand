@@ -23,6 +23,7 @@ const props = defineProps<{
   getCategoryName: (category: string) => string | null;
   isFavorite: (requestId: number) => boolean;
   toggleFavorite: (requestId: number) => Promise<void>;
+  confirmEdit: (request: Request) => void;
   confirmDelete: (event: MouseEvent, requestId: number) => void;
   confirmAccept: (requestId: number, successCallback: () => void) => void;
   confirmFinish: (requestId: number) => void;
@@ -139,20 +140,21 @@ const triggerAccept = () => {
               v-tooltip.bottom="isFavorite(request.id) ? 'Aus Favoriten entfernen' : 'Zu Favoriten hinzufügen'"
               @click="toggleFavorite(request.id)"
           />
-          <!-- TODO: add click event -->
           <Button
               v-if="props.isOwnRequest"
               icon="pi pi-pen-to-square"
               variant="text"
               v-tooltip.bottom="'Auftrag bearbeiten'"
               class="ml-2"
+              @click="confirmEdit(request)"
           />
           <Button
               v-else
+              :disabled="!!request.accepted_by"
               icon="pi pi-check"
               variant="text"
-              severity="success"
-              v-tooltip.bottom="request.category === 'giveaway' ? 'Geschenk annehmen' : 'Auftrag annehmen'"
+              :severity="!request.accepted_by ? 'success' : 'secondary'"
+              v-tooltip.bottom="!request.accepted_by ? (request.category === 'giveaway' ? 'Geschenk annehmen' : 'Auftrag annehmen') : 'Auftrag wurde bereits angenommen'"
               class="ml-2"
               @click="triggerAccept()"
           />

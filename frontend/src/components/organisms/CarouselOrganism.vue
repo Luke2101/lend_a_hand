@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from "vue";
-import {useConfirm} from "primevue";
+import { ref, onMounted, watch, defineExpose, defineEmits } from "vue";
+import { useConfirm } from "primevue";
 import { useToast } from "primevue/usetoast";
 
 import Carousel from 'primevue/carousel';
@@ -9,6 +9,7 @@ import ProgressSpinner from 'primevue/progressspinner';
 import type { Request } from '@/types/Request.interface';
 import { ViewType } from '@/types/ViewType.enum';
 import RequestCardMolecule from '@/components/molecules/RequestCardMolecule.vue';
+import RequestDialogOrganism from "@/components/organisms/RequestDialogOrganism.vue";
 
 interface ResponsiveOption {
   breakpoint: string;
@@ -34,6 +35,11 @@ const requestsLoading = ref(true);
 
 const favoriteIds = ref<number[]>([]);
 const favouritesLoading = ref(false);
+
+const emit = defineEmits(['requestUpdated']);
+
+const isEditDialogVisible = ref(false);
+const requestToEdit = ref<Request | undefined>(undefined);
 
 const fetchRequests = async () => {
   requestsLoading.value = true;
@@ -106,7 +112,6 @@ const fetchFavorites = async () => {
 
     if (response.ok) {
       const data = await response.json();
-      // Die API gibt direkt ein Array von IDs zurück
       favoriteIds.value = Array.isArray(data) ? data : [];
     } else {
       console.error('Fehler beim Laden der Favoriten-IDs');
@@ -121,7 +126,7 @@ const fetchFavorites = async () => {
 };
 
 const loadData = async () => {
-  if (props.viewType === ViewType.nearby) {
+  if (props.viewType !== ViewType.own) {
     await fetchFavorites();
   }
   await fetchRequests();
@@ -168,6 +173,11 @@ const toggleFavorite = async (requestId: number) => {
   }
 };
 
+const confirmEdit = (request: Request) => {
+  requestToEdit.value = request;
+  isEditDialogVisible.value = true;
+};
+
 const confirmDelete = (event: MouseEvent, requestId: number) => {
   confirm.require({
     group: 'popup',
@@ -192,6 +202,7 @@ const confirmDelete = (event: MouseEvent, requestId: number) => {
         if (response.ok) {
           toast.add({ severity: 'info', summary: 'Bestätigt', detail: 'Anfrage gelöscht', life: 3000 });
           requests.value = requests.value.filter(r => r.id !== requestId);
+          emit('requestUpdated');
         } else if (response.status === 403) {
           toast.add({ severity: 'error', summary: 'Fehler', detail: 'Du hast keine Berechtigung, diese Anfrage zu löschen.', life: 5000 });
         } else {
@@ -235,6 +246,9 @@ const confirmAccept = (requestId: number, successCallback: () => void) => {
           const result = await response.json();
           console.log('Anfrage erfolgreich angenommen:', result);
           successCallback();
+          setTimeout(() => {
+            emit('requestUpdated');
+          }, 1500); // delay for confetti
         }
         else if (response.status === 403) {
           toast.add({ severity: 'error', summary: 'Fehler', detail: 'Diese Anfrage wurde bereits angenommen oder Sie sind nicht dazu berechtigt.', life: 5000});
@@ -279,6 +293,7 @@ const confirmFinish = (requestId: number) => {
         if (response.ok) {
           const result = await response.json();
           console.log('Anfrage erfolgreich abgeschlossen:', result);
+          emit('requestUpdated');
         } else {
           const errorData = await response.json();
           console.error('Fehler beim Abschliessen der Anfrage:', errorData.message);
@@ -330,9 +345,23 @@ const responsiveOptions: ResponsiveOption[] = [
   { breakpoint: '767px', numVisible: 2, numScroll: 1 },
   { breakpoint: '575px', numVisible: 1, numScroll: 1 }
 ];
+
+defineExpose({
+  fetchRequests
+});
 </script>
 
 <template>
+  <RequestDialogOrganism
+      v-model:visible="isEditDialogVisible"
+      :request-to-edit="requestToEdit"
+      @update:visible="(value) => {
+        isEditDialogVisible = value;
+        if (!value) {
+            fetchRequests();
+        }
+      }"
+  />
   <div class="card">
     <div v-if="requestsLoading" class="flex justify-center items-center h-40">
       <ProgressSpinner/>
@@ -349,6 +378,7 @@ const responsiveOptions: ResponsiveOption[] = [
               :get-category-name="getCategoryName"
               :is-favorite="isFavorite"
               :toggle-favorite="toggleFavorite"
+              :confirm-edit="confirmEdit"
               :confirm-delete="confirmDelete"
               :confirm-accept="confirmAccept"
               :confirm-finish="confirmFinish"
