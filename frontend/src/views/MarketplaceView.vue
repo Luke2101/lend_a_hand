@@ -4,6 +4,7 @@ import TextAtom from "@/components/atoms/TextAtom.vue";
 import Divider from "primevue/divider";
 import Button from "primevue/button";
 import RequestDialogOrganism from "@/components/organisms/RequestDialogOrganism.vue";
+import { ViewType } from '@/types/ViewType.enum';
 import {ref} from "vue";
 
 const visible = ref(false);
@@ -15,8 +16,9 @@ const visible = ref(false);
     <TextAtom tag="h2" class="text-xl font-bold">Eigene Anfragen</TextAtom>
     <Button label="Anfrage Erstellen" icon="pi pi-plus" @click="visible = true"/>
   </div>
-  <CarouselOrganism ownRequests/>
+  <CarouselOrganism :view-type="ViewType.own"/>
+
   <Divider align="left" type="horizontal"/>
   <TextAtom tag="h2" class="text-xl font-bold mt-4 mb-4">Anfragen deiner Nachbarn</TextAtom>
-  <CarouselOrganism :ownRequests="false"/>
+  <CarouselOrganism :view-type="ViewType.nearby"/>
 </template>

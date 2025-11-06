@@ -17,7 +17,7 @@ interface UserInfo {
 
 const props = defineProps<{
   request: Request;
-  ownRequests: boolean;
+  isOwnRequest: boolean;
   formatDateTime : (iso: string | undefined) => string;
   getSeverity: (category: string) => 'info' | 'success' | 'warn' | null;
   getCategoryName: (category: string) => string | null;
@@ -77,7 +77,7 @@ const triggerAccept = () => {
     </div>
 
     <Button
-        v-if="request.accepted_by && acceptedByUser"
+        v-if="request.accepted_by && acceptedByUser && isOwnRequest"
         icon="pi pi-check" :label="acceptedByUser.prename"
         v-tooltip.bottom="'Anfrage wurde von ' + acceptedByUser.prename + ' (' + acceptedByUser.email +') angenommen.'"
         severity="success"
@@ -88,14 +88,14 @@ const triggerAccept = () => {
     <div class="mb-1 mt-2 text-lg font-semibold flex justify-between">
       {{ request.title }}
       <Tag
-          v-if="!props.ownRequests"
+          v-if="!props.isOwnRequest"
           icon="pi pi-map-marker"
           v-tooltip.bottom="request.city"
           :value="request.plz"
           class="ml-2"
       />
     </div>
-    <div v-if="!props.ownRequests">
+    <div v-if="!props.isOwnRequest">
       <i class="pi pi-user mr-2 mb-2"/>
       {{ request.prename }}
     </div>
@@ -124,7 +124,7 @@ const triggerAccept = () => {
       </div>
       <span>
           <Button
-              v-if="props.ownRequests"
+              v-if="props.isOwnRequest"
               icon="pi pi-trash"
               severity="danger"
               variant="text"
@@ -141,7 +141,7 @@ const triggerAccept = () => {
           />
           <!-- TODO: add click event -->
           <Button
-              v-if="props.ownRequests"
+              v-if="props.isOwnRequest"
               icon="pi pi-pen-to-square"
               variant="text"
               v-tooltip.bottom="'Auftrag bearbeiten'"

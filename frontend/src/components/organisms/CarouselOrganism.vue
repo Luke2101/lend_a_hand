@@ -7,6 +7,7 @@ import Carousel from 'primevue/carousel';
 import ProgressSpinner from 'primevue/progressspinner';
 
 import type { Request } from '@/types/Request.interface';
+import { ViewType } from '@/types/ViewType.enum';
 import RequestCardMolecule from '@/components/molecules/RequestCardMolecule.vue';
 
 interface ResponsiveOption {
@@ -15,16 +16,18 @@ interface ResponsiveOption {
   numScroll: number;
 }
 
-const props = withDefaults(defineProps<{
-  ownRequests: boolean;
-}>(), {
-  ownRequests: false
+interface CarouselProps {
+  viewType: ViewType;
+}
+
+const props = withDefaults(defineProps<CarouselProps>(), {
+  viewType: ViewType.nearby
 });
 
 const confirm = useConfirm();
 const toast = useToast();
 
-const AUTOPLAY_INTERVAL = props.ownRequests ? 0 : 5000;
+const AUTOPLAY_INTERVAL = props.viewType === ViewType.nearby ? 5000 : 0;
 
 const requests = ref<Request[]>([]);
 const requestsLoading = ref(true);
@@ -34,9 +37,38 @@ const favouritesLoading = ref(false);
 
 const fetchRequests = async () => {
   requestsLoading.value = true;
-  const endpoint = props.ownRequests
-      ? 'http://localhost:8080/request/self'
-      : 'http://localhost:8080/request/nearby';
+  let endpoint = '';
+
+  switch (props.viewType) {
+    case ViewType.own:
+      endpoint = 'http://localhost:8080/request/self';
+      break;
+    case ViewType.nearby:
+      endpoint = 'http://localhost:8080/request/nearby';
+      break;
+    case ViewType.accepted:
+      endpoint = 'http://localhost:8080/request/accepted';
+      break;
+    case ViewType.favorite:
+    {
+      await fetchFavorites();
+
+      if (favoriteIds.value.length === 0) {
+        requests.value = [];
+        requestsLoading.value = false;
+        return;
+      }
+
+      const idsQuery = favoriteIds.value.join(',');
+      endpoint = `http://localhost:8080/request?ids=${idsQuery}`;
+
+      break;
+    }
+    default:
+      console.error('Unbekannter ViewType:', props.viewType);
+      requestsLoading.value = false;
+      return;
+  }
 
   try {
     const response = await fetch(endpoint, {
@@ -89,14 +121,14 @@ const fetchFavorites = async () => {
 };
 
 const loadData = async () => {
-  await fetchRequests();
-  if (!props.ownRequests) {
+  if (props.viewType === ViewType.nearby) {
     await fetchFavorites();
   }
+  await fetchRequests();
 };
 
 onMounted(loadData);
-watch(() => props.ownRequests, loadData);
+watch(() => props.viewType, loadData);
 
 const isFavorite = (requestId: number): boolean => {
   return favoriteIds.value.includes(requestId);
@@ -311,7 +343,7 @@ const responsiveOptions: ResponsiveOption[] = [
         <template #item="slotProps">
           <RequestCardMolecule
               :request="slotProps.data"
-              :own-requests="props.ownRequests"
+              :is-own-request="props.viewType === ViewType.own"
               :format-date-time="formatDateTime"
               :get-severity="getSeverity"
               :get-category-name="getCategoryName"
@@ -326,8 +358,11 @@ const responsiveOptions: ResponsiveOption[] = [
     </div>
 
     <div v-else class="text-center text-surface-500 dark:text-surface-400 p-8">
-      <p v-if="props.ownRequests">Du hast noch keine Anfragen erstellt.</p>
-      <p v-else>Aktuell gibt es keine Anfragen in deiner Nähe.</p>
+      <p v-if="props.viewType === ViewType.own">Du hast noch keine Anfragen erstellt.</p>
+      <p v-else-if="props.viewType === ViewType.nearby">Aktuell gibt es keine Anfragen in deiner Nähe.</p>
+      <p v-else-if="props.viewType === ViewType.favorite">Du hast noch keine Anfragen favorisiert.</p>
+      <p v-else-if="props.viewType === ViewType.accepted">Du hast noch keine Anfragen angenommen.</p>
+      <p v-else>Keine Anfragen gefunden.</p>
     </div>
   </div>
 </template>

@@ -7,6 +7,7 @@ import LoginView from "@/views/LoginView.vue";
 import UserSettingsView from "@/views/UserSettingsView.vue";
 import MyRequestsView from "@/views/MyRequestsView.vue";
 import FavoriteRequestsView from "@/views/FavoriteRequestsView.vue";
+import MyAcceptedView from "@/views/MyAcceptedView.vue";
 
 const routes = [
     {
@@ -36,7 +37,7 @@ const routes = [
     {
         path: '/marketplace/myAccepted',
         name: 'My Accepted',
-        component: FavoriteRequestsView
+        component: MyAcceptedView
     },
     {
         path: '/signup',
