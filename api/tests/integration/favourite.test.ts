@@ -4,9 +4,7 @@ import {afterAll} from "vitest";
 import {getValidUniqueUser} from "../fixtures/users.js";
 import {StatusCodes} from "http-status-codes";
 import AdminTools from "../util/AdminTools.js";
-import TestingError from "../../src/errors/TestingError.js";
 import RequestCategory from "../../src/util/RequestCategory.js";
-import {req} from "pino-std-serializers";
 
 let token: string[] = [];
 let testRequestId: number;

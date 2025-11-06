@@ -1,6 +1,6 @@
 import type {CreateRequestBody, UpdateRequestBody} from "../schemas/requestSchemas.js";
 import {db} from "../lib/auth.js";
-import {requestTable} from "../db/tables.js";
+import {favouriteTable, requestTable} from "../db/tables.js";
 import logger from "../util/logger.js";
 import {and, eq, isNull, like} from "drizzle-orm";
 import type {SRequest} from "../types.js";
@@ -38,6 +38,7 @@ class RequestRepository {
     public async deleteRequest(reqId: number) {
         try {
             await db.delete(requestTable).where(eq(requestTable.id, reqId))
+            await db.delete(favouriteTable).where(eq(favouriteTable.requestId, reqId))
             return true;
         }catch (err) {
             logger.error(`Unable to delete request with id=${reqId}`)

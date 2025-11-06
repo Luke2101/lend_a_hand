@@ -206,7 +206,7 @@ class RequestService extends Service<RequestRepository>{
         if(!recipient) {
             logger.debug(`Unable to finish reuqest because it was not accepted yet, accepted_by = null`)
             return StatusCodes.CONFLICT
-        };
+        }
 
         const transferResult = await this.userService?.transferMoney(userId, recipient, request.credits)
         if(transferResult != StatusCodes.OK) {
